@@ -6,6 +6,16 @@ use std::process::Command;
 use jankurai::audit::{rule_registry, rules};
 
 #[test]
+fn committed_rule_catalog_matches_registry() {
+    let committed = include_str!("../../../docs/rule-catalog.md");
+    let generated = jankurai::commands::rules::registry_catalog_markdown();
+    assert_eq!(
+        committed, generated,
+        "docs/rule-catalog.md drifted from jankurai rules export"
+    );
+}
+
+#[test]
 fn rule_registry_ids_are_unique() {
     let mut seen = HashSet::new();
     for rule in rule_registry() {

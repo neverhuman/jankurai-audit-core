@@ -92,6 +92,10 @@ pub fn run_verify(args: VerifyArgs) -> Result<()> {
     Ok(())
 }
 
+pub fn registry_catalog_markdown() -> String {
+    render_registry_markdown(&build_registry_report())
+}
+
 pub fn build_registry_report() -> RuleRegistryReport {
     RuleRegistryReport {
         schema_version: "1.0.0".into(),
@@ -215,20 +219,48 @@ fn collect_rule_references(repo: &Path) -> Result<Vec<RuleReference>> {
     Ok(out)
 }
 
+fn catalog_cell(value: &str) -> String {
+    value
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .replace('|', "\\|")
+}
+
 fn render_registry_markdown(report: &RuleRegistryReport) -> String {
     use std::fmt::Write;
     let mut out = String::new();
-    let _ = writeln!(out, "# jankurai Rule Registry");
+    let _ = writeln!(out, "# Jankurai rule catalog");
+    let _ = writeln!(out);
+    let _ = writeln!(
+        out,
+        "Generated from `jankurai rules export`. Regenerate this file from the registry and keep the drift test green."
+    );
+    let _ = writeln!(out);
+    let _ = writeln!(
+        out,
+        "Language bad-behavior rules can false-positive on idiomatic code. This catalog does not add per-language allowlist goldens."
+    );
     let _ = writeln!(out);
     let _ = writeln!(out, "- rules: `{}`", report.rules.len());
+    let _ = writeln!(out, "- auditor: `{}`", report.auditor_version);
     let _ = writeln!(out);
-    let _ = writeln!(out, "| Rule | Lane | Severity | Status |");
-    let _ = writeln!(out, "| --- | --- | --- | --- |");
+    let _ = writeln!(
+        out,
+        "| Rule | Name | Lane | Severity | Status | Confidence | Repair |"
+    );
+    let _ = writeln!(out, "| --- | --- | --- | --- | --- | --- | --- |");
     for rule in &report.rules {
         let _ = writeln!(
             out,
-            "| `{}` | `{}` | `{}` | `{}` |",
-            rule.id, rule.lane, rule.severity, rule.status
+            "| `{}` | {} | `{}` | `{}` | `{}` | `{}` | {} |",
+            catalog_cell(&rule.id),
+            catalog_cell(&rule.name),
+            catalog_cell(&rule.lane),
+            catalog_cell(&rule.severity),
+            catalog_cell(&rule.status),
+            catalog_cell(&rule.confidence_policy),
+            catalog_cell(&rule.repair_reason),
         );
     }
     out

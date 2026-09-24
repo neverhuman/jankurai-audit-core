@@ -9,6 +9,9 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ### Added
 
+- `docs/rule-catalog.md` lists every registry rule with name, lane, severity,
+  status, confidence, and repair reason. `committed_rule_catalog_matches_registry`
+  fails when the file drifts from `jankurai rules export`.
 - Root `Justfile` command surface with `setup`, `fast`, `check`, `security`, and
   `audit` lanes for one-command setup and validation.
 - GitHub Actions CI (`.github/workflows/ci.yml`) with build, security, and
