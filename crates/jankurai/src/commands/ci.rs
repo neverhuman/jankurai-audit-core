@@ -27,7 +27,9 @@ pub fn install(args: CiInstallArgs) -> Result<()> {
         bail!("--min-score must be an integer from 0 through 100");
     }
     if args.mode == "ratchet" && args.baseline.is_none() {
-        bail!("ratchet CI requires --baseline PATH; use agent/baselines/main.repo-score.json after an accepted baseline exists");
+        bail!(
+            "ratchet CI requires --baseline PATH; use agent/baselines/main.repo-score.json after an accepted baseline exists"
+        );
     }
     progress.tick("render workflow");
     let path = args.repo.join(".github/workflows/jankurai.yml");
@@ -143,7 +145,9 @@ jobs:
             exit 1
           fi
       - name: Install jankurai
-        run: cargo install jankurai --locked
+        run: |
+          bash -o pipefail -c 'curl --proto "=https" --tlsv1.2 -fsSL https://raw.githubusercontent.com/neverhuman/jankurai/v1.7.0/jankurai-installer.sh | bash -s -- --tag v1.7.0'
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - run: jankurai --version
       - name: Proofbind verify
         run: jankurai proofbind verify . --changed-from origin/main --mode required
@@ -199,7 +203,9 @@ mod tests {
     #[test]
     fn ratchet_workflow_uses_installed_jankurai_and_score_gate() {
         let rendered = workflow("ratchet", 85, Some(".jankurai/repo-score.json"));
-        assert!(rendered.contains("cargo install jankurai --locked"));
+        assert!(rendered.contains("jankurai-installer.sh"));
+        assert!(rendered.contains("neverhuman/jankurai"));
+        assert!(!rendered.contains("cargo install jankurai"));
         assert!(rendered.contains("--mode ratchet"));
         assert!(rendered.contains("--fail-under 85"));
         assert!(rendered.contains("Enforce score floor"));

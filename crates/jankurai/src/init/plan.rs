@@ -52,13 +52,21 @@ pub fn build_plan(
     );
     let (profile_manifest, read_only_exception_paths) =
         strip_read_only_exception_paths(profile_manifest);
+    // Custom --profile-file manifests are explicit; do not inject badge.toml.
+    let profile_manifest = if profile_file.is_some() {
+        profile_manifest
+    } else {
+        ensure_consumer_paths(profile_manifest, selected_level)
+    };
     let profile = profile_manifest.id.clone();
     let mut paths = profile_manifest.generated_paths.clone();
     paths.sort();
     let mut actions = Vec::new();
     for path in &paths {
         if super::templates::template_for_path(path).is_none() {
-            bail!("profile declares `{path}` but no init template is registered (see init/templates.rs)");
+            bail!(
+                "profile declares `{path}` but no init template is registered (see init/templates.rs)"
+            );
         }
         let action = if repo.join(path).exists() {
             profile_manifest
@@ -252,9 +260,14 @@ pub fn render_next_steps(
     } else {
         shell_arg(&repo.join("target/jankurai/repo-score.md"))
     };
+    let hooks = crate::ui::paint(
+        crate::ui::Style::Accent,
+        format!("jankurai hooks install {repo_arg} --yes"),
+        color,
+    );
     let audit = crate::ui::paint(
         crate::ui::Style::Accent,
-        format!("jankurai audit {repo_arg} --mode advisory --json {json_out} --md {md_out}"),
+        format!("jankurai audit {repo_arg} --json {json_out} --md {md_out}"),
         color,
     );
     let agent_prompt = crate::ui::paint(
@@ -278,17 +291,20 @@ pub fn render_next_steps(
         );
         let _ = writeln!(
             out,
-            "  2. After applying, run `{doctor}` for local health, then `{audit}` for a score."
+            "  2. After applying, run `{hooks}` so commits scan only touched files, then `{audit}` once for the README score SVG."
         );
         let _ = writeln!(
             out,
             "  3. Start Codex, OpenCode, Claude, Cursor, or another agent from {repo_label} and say: `{agent_prompt}`"
         );
     } else {
-        let _ = writeln!(out, "  1. Run `{doctor}` for local health.");
         let _ = writeln!(
             out,
-            "  2. Run `{audit}` for the repo score and repair queue."
+            "  1. Run `{hooks}` if git hooks were not installed, then `{doctor}` for local health."
+        );
+        let _ = writeln!(
+            out,
+            "  2. Run `{audit}` once for the README score SVG. Pre-commit uses `jankurai diff-audit` on touched files only."
         );
         let _ = writeln!(
             out,
@@ -468,6 +484,37 @@ fn augment_for_repo(
     manifest
 }
 
+fn ensure_consumer_paths(
+    mut manifest: super::profiles::ProfileManifest,
+    level: InitLevel,
+) -> super::profiles::ProfileManifest {
+    if level == InitLevel::Agents {
+        return manifest;
+    }
+    let mut extras = vec![(
+        "agent/badge.toml",
+        super::profiles::MergePolicyAction::MergeToml,
+    )];
+    if matches!(level, InitLevel::Ci | InitLevel::Full) {
+        extras.push((
+            ".pre-commit-config.yaml",
+            super::profiles::MergePolicyAction::KeepExisting,
+        ));
+    }
+    for (path, policy) in extras {
+        if !manifest
+            .generated_paths
+            .iter()
+            .any(|existing| existing == path)
+        {
+            manifest.generated_paths.push(path.into());
+        }
+        manifest.merge_policy.insert(path.into(), policy);
+    }
+    manifest.generated_paths.sort();
+    manifest
+}
+
 fn filter_list(values: Vec<String>, allowed: &BTreeSet<&'static str>) -> Vec<String> {
     values
         .into_iter()
@@ -510,6 +557,7 @@ fn level_allowed_paths(level: InitLevel) -> BTreeSet<&'static str> {
             "crates/domain/AGENTS.md",
             "crates/workers/AGENTS.md",
             "agent/audit-policy.toml",
+            "agent/badge.toml",
             "agent/generated-zones.toml",
             "agent/jankurai-install.toml",
             "agent/owner-map.json",
@@ -526,6 +574,7 @@ fn level_allowed_paths(level: InitLevel) -> BTreeSet<&'static str> {
     if level == InitLevel::Ci {
         paths.extend([
             ".github/workflows/jankurai.yml",
+            ".pre-commit-config.yaml",
             "agent/security-policy.toml",
             "tools/security-lane.sh",
         ]);

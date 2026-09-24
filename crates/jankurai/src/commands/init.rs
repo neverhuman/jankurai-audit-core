@@ -68,12 +68,25 @@ pub fn run(args: InitArgs) -> Result<()> {
         &plan.level,
         args.force_generated_adapters,
     )?;
+    install_hooks_if_git(&args.repo);
     let receipt = write_receipt(&args.repo, "init", &actions)?;
     println!(
         "{}",
         crate::init::plan::render_next_steps(&plan, true, Some(&receipt), &args.repo)
     );
     Ok(())
+}
+
+fn install_hooks_if_git(repo: &Path) {
+    match crate::commands::hooks::install(crate::commands::hooks::HooksInstallArgs {
+        repo: repo.to_path_buf(),
+        yes: true,
+        dry_run: false,
+        force: false,
+    }) {
+        Ok(()) => {}
+        Err(err) => println!("jankurai init: skipped git hooks ({err})"),
+    }
 }
 
 fn apply_templates(

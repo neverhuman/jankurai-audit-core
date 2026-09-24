@@ -147,15 +147,15 @@ const CONTEXT_PACK_WORKFLOW: &str = workflow_adapter!(
     "jankurai context-pack",
     "Use `jankurai context-pack . --changed <path> --max-tokens 6000 --out target/jankurai/context-pack.json --md target/jankurai/context-pack.md` to turn a bounded change set into a repo-aware context bundle.",
     "`target/jankurai/context-pack.json`, `target/jankurai/context-pack.md`",
-    "`jankurai prove`",
+    "`jankurai audit`",
     "the task is too broad, owner/test routing is unclear, or generated-zone work needs source regeneration first"
 );
 const PROVE_WORKFLOW: &str = workflow_adapter!(
-    "jankurai prove",
-    "Use `jankurai prove . --changed <path> --plan-out target/jankurai/proof-plan.json --plan-md target/jankurai/proof-plan.md` to build a proof plan, then run the proof receipts and evidence index under `target/jankurai/`.",
-    "`target/jankurai/proof-plan.json`, `target/jankurai/proof-plan.md`, `target/jankurai/proof-receipts/`, `target/jankurai/evidence-index.json`",
-    "`jankurai witness`",
-    "commands are unsigned, not in proof lanes or the test map, or the plan would mutate generated zones without allowlisted proof"
+    "jankurai proof",
+    "Use `jankurai proof . --changed <path> --out target/jankurai/proof-plan.json --md target/jankurai/proof-plan.md` to build a **plan** of required lanes. Imported receipts and this plan are not execution proof; supervised command execution is unavailable.",
+    "`target/jankurai/proof-plan.json`, `target/jankurai/proof-plan.md`",
+    "`jankurai audit`",
+    "the plan would imply unsigned commands, missing test-map lanes, or generated-zone mutation without a source contract"
 );
 const WITNESS_WORKFLOW: &str = workflow_adapter!(
     "jankurai witness",
@@ -175,6 +175,9 @@ const MINIMAL_JUSTFILE: &str = "# jankurai scaffold Justfile\n\nfast:\n\tjankura
 const RUST_FULL_JUSTFILE: &str = "# jankurai scaffold Justfile\n\nfast:\n\tjankurai doctor --fail-on critical\n\nscore:\n\tjankurai audit . --mode advisory --json .jankurai/repo-score.json --md .jankurai/repo-score.md --score-history .jankurai/score-history.jsonl --score-history-csv .jankurai/score-history.csv\n\ndoctor:\n\tjankurai doctor --fail-on high\n\nsecurity:\n\tjankurai security run . --out target/jankurai/security/evidence.json\n\nrust-map:\n\tjankurai rust map .\n\nrust-witness:\n\tjankurai rust witness build .\n\nrust-diagnose:\n\tjankurai rust diagnose .\n\ncheck: fast score security rust-map rust-witness rust-diagnose\n";
 pub const PRE_COMMIT_HOOK: &str = r#"#!/usr/bin/env bash
 # JANKURAI MANAGED HOOK: pre-commit
+# Developer check: scan staged + worktree paths vs HEAD only.
+# This is not release, ratchet, or README-badge authority. CI runs a full audit.
+# Caps / issue markers / hard findings in the touched set fail the commit.
 set -euo pipefail
 
 if [ "${JANKURAI_SKIP_HOOKS:-}" = "1" ]; then
@@ -207,115 +210,51 @@ else
 fi
 
 cd "$repo_root"
-
-report_dir="${JANKURAI_HOOK_REPORT_DIR:-target/jankurai/hooks}"
+report_dir="${JANKURAI_HOOK_REPORT_DIR:-target/jankurai/diff}"
 mkdir -p "$report_dir"
-report_json="$report_dir/pre-commit-score.json"
-report_md="$report_dir/pre-commit-score.md"
-report_history_jsonl="$report_dir/pre-commit-score-history.jsonl"
-report_history_csv="$report_dir/pre-commit-score-history.csv"
 
-hook_mode="${JANKURAI_HOOK_MODE:-standard}"
-if [ "$hook_mode" != standard ]; then
-  echo "jankurai pre-commit score gate requires standard mode" >&2
-  exit 2
-fi
-hook_floor="${JANKURAI_FAIL_UNDER:-85}"
-if [[ ! "$hook_floor" =~ ^(0|[1-9][0-9]?|100)$ ]]; then
-  echo "JANKURAI_FAIL_UNDER must be an integer from 0 through 100" >&2
-  exit 2
-fi
-report_work="$(mktemp -d "$report_dir/.pre-commit.XXXXXXXX")"
-trap 'rm -rf -- "$report_work"' EXIT
-
-# Preserve any fresh JSON/Markdown the auditor wrote before the EXIT trap
-# removes the work directory, including failed audits that must replace an
-# older pass report rather than leaving it as the latest artifact.
-promote_hook_report() {
-  if [ -f "$report_work/score.json" ]; then
-    mv -- "$report_work/score.json" "$report_json"
-  fi
-  if [ -f "$report_work/score.md" ]; then
-    mv -- "$report_work/score.md" "$report_md"
-  fi
-}
-
-audit_args=(
-  audit .
-  --mode "$hook_mode"
-  --full
-  --no-badge
-  --fail-under "$hook_floor"
-  --json "$report_work/score.json"
-  --md "$report_work/score.md"
-  --score-history "$report_history_jsonl"
-  --score-history-csv "$report_history_csv"
-)
-
-if [ -n "${JANKURAI_HISTORY_MIRROR:-}" ]; then
-  audit_args+=(--score-history-mirror "$JANKURAI_HISTORY_MIRROR")
-fi
-if [ "${JANKURAI_HISTORY_MIRROR_REQUIRED:-}" = "1" ]; then
-  audit_args+=(--score-history-mirror-required)
-fi
-if [ -n "${JANKURAI_SCORE_HISTORY_MAX_ROWS:-}" ]; then
-  audit_args+=(--score-history-max-rows "$JANKURAI_SCORE_HISTORY_MAX_ROWS")
-fi
-if [ -n "${JANKURAI_SCORE_HISTORY_MAX_BYTES:-}" ]; then
-  audit_args+=(--score-history-max-bytes "$JANKURAI_SCORE_HISTORY_MAX_BYTES")
-fi
-
-if ! "$jankurai_cmd" "${audit_args[@]}"; then
-  promote_hook_report || true
-  echo "jankurai pre-commit audit failed; set JANKURAI_SKIP_HOOKS=1 to bypass local hooks" >&2
+# Compare to HEAD so a feature branch is not re-audited against origin/main.
+# Incomplete Git inventories must fail closed (Fleet collect contract).
+if ! "$jankurai_cmd" diff-audit --base-ref HEAD --out-dir "$report_dir"; then
+  echo "jankurai pre-commit: diff-audit blocked this commit (hard findings, caps, or incomplete Git)." >&2
+  echo "jankurai pre-commit: this is not a passing score badge. Set JANKURAI_SKIP_HOOKS=1 to bypass once." >&2
   exit 1
 fi
+"#;
 
-# Only a fresh coherent successful report may establish the score gate.
-if ! jq -e --argjson floor "$hook_floor" '
-type == "object"
-  and (.score | type == "number" and . == floor and . >= 0 and . <= 100)
-  and (.raw_score | type == "number" and . == floor and . >= 0 and . <= 100)
-  and (.findings | type == "array")
-  and (.caps_applied | type == "array" and all(.[]; type == "string"))
-  and (.decision | type == "object")
-  and (.decision.status == "pass" and .decision.passed == true)
-  and (.decision.minimum_score | type == "number" and . == floor and . >= 0 and . <= 100)
-  and (.decision.hard_findings | type == "number" and . == floor and . == 0)
-  and (.decision.soft_findings | type == "number" and . == floor and . >= 0)
-  and ((has("policy") | not) or
-       ((.policy | type == "object") and
-        (.policy.minimum_score | type == "number" and . == floor and . >= 0 and . <= 100) and
-        .policy.minimum_score == .decision.minimum_score))
-  and (.score >= $floor and .score >= .decision.minimum_score)
-  and ((.decision | has("ratchet") | not) or .decision.ratchet == null or
-       (.decision.ratchet | type == "object" and .passed == true))
-' "$report_work/score.json" >/dev/null; then
-  promote_hook_report || true
-  echo "jankurai pre-commit report is invalid or failed its score/policy gate" >&2
-  exit 1
-fi
-promote_hook_report
+/// Consumer CI: verified Action + public v1.7.0 auditor. Full-tree score lives here;
+/// the local pre-commit hook only scans the diff.
+pub const CONSUMER_CI_WORKFLOW: &str = r#"name: jankurai
 
-if [ "${JANKURAI_HOOK_STAGE_ARTIFACTS:-}" = "1" ]; then
-  git add -- "$report_json" "$report_md" "$report_history_jsonl" "$report_history_csv" 2>/dev/null || true
-fi
+on:
+  pull_request:
+  push:
+    branches: [main]
 
-report_path="$report_json"
-score="$(jq -er '.score' "$report_path")"
-raw_score="$(jq -er '.raw_score' "$report_path")"
-hard_findings="$(jq -er '.decision.hard_findings' "$report_path")"
-finding_count="$(jq -er '.findings | length' "$report_path")"
-decision="pass"
+permissions:
+  contents: read
 
-cat > "$jankurai_dir/last-score.env" <<EOF
-JANKURAI_SCORE='$score'
-JANKURAI_RAW_SCORE='$raw_score'
-JANKURAI_FINDINGS='$finding_count'
-JANKURAI_HARD_FINDINGS='$hard_findings'
-JANKURAI_DECISION='$decision'
-JANKURAI_REPORT='${report_json}'
-EOF
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: neverhuman/jankurai-action@4a45526ac904315f96e6bbebda4e088268023afa
+        id: quality
+        with:
+          release-tag: v1.7.0
+          fail-under: "85"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: jankurai-report
+          if-no-files-found: ignore
+          path: ${{ steps.quality.outputs.report-directory }}
 "#;
 pub const PREPARE_COMMIT_MSG_HOOK: &str = r#"#!/usr/bin/env bash
 # JANKURAI MANAGED HOOK: prepare-commit-msg
@@ -506,7 +445,15 @@ pub const TEMPLATES: &[Template] = &[
     },
     Template {
         path: "agent/audit-policy.toml",
-        body: "minimum_score = 85\nfail_on = [\"critical\", \"high\"]\nadvisory_on = [\"medium\", \"low\"]\n\n[history]\nmax_rows = 500\nmax_bytes = 1048576\ndedupe = \"consecutive-equivalent\"\nmirror_env = \"JANKURAI_HISTORY_MIRROR\"\nmirror_required = false\nmirror_max_rows = 5000\n\n[scan]\nexcluded_paths = [\"tips/\"]\n\n[smart_scan]\n# After a clean full scan, only scan git-status changed files by default.\nfull_scan_interval_secs = 3600\nroulette_rate = 0.10\n",
+        body: "minimum_score = 85\nfail_on = [\"critical\", \"high\"]\nadvisory_on = [\"medium\", \"low\"]\n\n[history]\nmax_rows = 500\nmax_bytes = 1048576\ndedupe = \"consecutive-equivalent\"\nmirror_env = \"JANKURAI_HISTORY_MIRROR\"\nmirror_required = false\nmirror_max_rows = 5000\n\n[scan]\nexcluded_paths = [\"tips/\"]\n\n[smart_scan]\n# After a clean full scan, only scan git-status changed files by default.\nfull_scan_interval_secs = 3600\nroulette_rate = 0.10\n\n# Full-repo `jankurai gate` stays advisory on new repos (never-freeze).\n# The installed pre-commit hook still runs diff-audit vs HEAD and fails on\n# hard findings or caps in touched files. That hook is not badge authority.\n[precommit_gate]\nblocking = false\n",
+    },
+    Template {
+        path: "agent/badge.toml",
+        body: "enabled = true\nsvg = \"agent/jankurai-badge.svg\"\njson = \"agent/jankurai-badge.json\"\nreadme = \"README.md\"\nlink = \"agent/jankurai-badge.json\"\nupdate_readme = true\nlabel = \"jankurai\"\n",
+    },
+    Template {
+        path: ".pre-commit-config.yaml",
+        body: "# Optional Python pre-commit framework wrapper.\n# `jankurai hooks install` writes native git hooks and does not need this file.\nrepos:\n  - repo: local\n    hooks:\n      - id: jankurai-diff-audit\n        name: jankurai diff-audit\n        entry: jankurai diff-audit --base-ref HEAD\n        language: system\n        pass_filenames: false\n        always_run: true\n",
     },
     Template {
         path: "agent/security-policy.toml",
@@ -526,7 +473,7 @@ pub const TEMPLATES: &[Template] = &[
     },
     Template {
         path: "docs/install.md",
-        body: "# Install jankurai\n\nRun `jankurai init --profile rust-ts-postgres --ide all --mode advisory --dry-run`, review the plan, then rerun with `--yes`.\n\nFor Rust services that want runtime repair packets, an optional `witness-rt` crate can emit packets that feed the Rust witness and diagnose flows.\n",
+        body: "# Install jankurai\n\n```sh\nbash -o pipefail -c 'curl --proto \"=https\" --tlsv1.2 -fsSL https://raw.githubusercontent.com/neverhuman/jankurai/v1.7.0/jankurai-installer.sh | bash -s -- --tag v1.7.0'\nexport PATH=\"$HOME/.local/bin:$PATH\"\njankurai init --yes\njankurai hooks install --yes\n```\n\nPre-commit then runs `jankurai diff-audit --base-ref HEAD` on staged and worktree files. That is a developer check, not a README score. Run `jankurai audit .` (full tree) in CI or before merge for the SVG badge. Upgrade with `jankurai upgrade` (same signed installer).\n",
     },
     Template {
         path: "docs/agent-native-standard.md",
@@ -542,7 +489,7 @@ pub const TEMPLATES: &[Template] = &[
     },
     Template {
         path: "README-jankurai-scaffold.md",
-        body: "# Greenfield scaffold (non-production)\n\nThis tree was bootstrapped with `jankurai init --profile rust-ts-postgres`. Replace this file with a real product README when you have one.\n",
+        body: "# Greenfield scaffold (non-production)\n\n<!-- jankurai-badge:start -->\n<!-- Run `jankurai audit .` then `jankurai badge` (or keep agent/badge.toml enabled) to fill this score. -->\n<!-- jankurai-badge:end -->\n\nThis tree was bootstrapped with `jankurai init`. Replace this file with a real product README when you have one. Copy the badge markers into `README.md` if you rename this file, and set `readme` in `agent/badge.toml`.\n",
     },
     Template {
         path: "contracts/README.md",
@@ -674,6 +621,70 @@ pub const TEMPLATES: &[Template] = &[
     },
     Template {
         path: ".github/workflows/jankurai.yml",
-        body: "name: jankurai\n\non:\n  pull_request:\n  push:\n    branches: [main]\n\njobs:\n  audit:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    steps:\n      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683\n        with:\n          fetch-depth: 0\n          persist-credentials: false\n      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b\n        with:\n          toolchain: 1.97.1\n          components: rustfmt, clippy\n      - name: Install jankurai\n        run: cargo install jankurai --locked\n      - run: jankurai --version\n      - name: jankurai audit\n        run: jankurai audit . --mode advisory --baseline .jankurai/repo-score.json --json target/jankurai/repo-score.json --md target/jankurai/repo-score.md --sarif target/jankurai/jankurai.sarif --github-step-summary target/jankurai/summary.md --repair-queue-jsonl target/jankurai/repair-queue.jsonl\n      - name: Proofbind verify\n        run: jankurai proofbind verify . --changed-from origin/main\n      - name: Proofmark rust\n        run: jankurai proofmark rust . --obligations target/jankurai/proofbind/obligations.json\n      - name: Rust witness build\n        run: jankurai rust witness build .\n      - name: UX QA smoke\n        run: jankurai ux audit --config agent/ux-qa.toml --out target/jankurai/ux-qa.json\n      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n        if: always()\n        with:\n          name: jankurai-adoption-evidence\n          if-no-files-found: ignore\n          path: |\n            target/jankurai/repo-score.json\n            target/jankurai/repo-score.md\n            target/jankurai/jankurai.sarif\n            target/jankurai/repair-queue.jsonl\n            target/jankurai/proofbind/obligations.json\n            target/jankurai/proofbind/surface-witness.json\n            target/jankurai/proofmark/proofmark-receipt.json\n            target/jankurai/proofmark/proof-receipt.json\n            target/jankurai/rust/witness-graph.json\n            target/jankurai/ux-qa.json\n            target/jankurai/security/evidence.json\n            target/jankurai/migration-report.json\n",
+        body: CONSUMER_CI_WORKFLOW,
     },
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pre_commit_hook_scans_the_diff_without_jq_or_full_tree() {
+        assert!(
+            PRE_COMMIT_HOOK.contains("diff-audit --base-ref HEAD"),
+            "pre-commit must diff vs HEAD, not origin/main"
+        );
+        assert!(
+            !PRE_COMMIT_HOOK.contains("--skip-proof"),
+            "pre-commit must not skip Fleet's Git/proof inventory contract"
+        );
+        assert!(
+            !PRE_COMMIT_HOOK.contains("audit ."),
+            "pre-commit must not run a full `jankurai audit .`"
+        );
+        assert!(
+            !PRE_COMMIT_HOOK.contains("jq "),
+            "pre-commit must not require jq"
+        );
+        assert!(PRE_COMMIT_HOOK.contains("JANKURAI_SKIP_HOOKS"));
+        assert_eq!(
+            template_for_path("tools/jankurai-hooks/pre-commit").map(|t| t.body),
+            Some(PRE_COMMIT_HOOK)
+        );
+    }
+
+    #[test]
+    fn consumer_ci_uses_verified_action_not_cargo_install() {
+        assert!(CONSUMER_CI_WORKFLOW.contains("neverhuman/jankurai-action@"));
+        assert!(CONSUMER_CI_WORKFLOW.contains("release-tag: v1.7.0"));
+        assert!(CONSUMER_CI_WORKFLOW.contains("fail-under: \"85\""));
+        assert!(
+            !CONSUMER_CI_WORKFLOW.contains("cargo install"),
+            "consumer CI must not cargo-install the split auditor"
+        );
+        assert!(
+            !CONSUMER_CI_WORKFLOW.contains("|| true"),
+            "consumer CI must not advisory-wash the badge check"
+        );
+        assert_eq!(
+            template_for_path(".github/workflows/jankurai.yml").map(|t| t.body),
+            Some(CONSUMER_CI_WORKFLOW)
+        );
+    }
+
+    #[test]
+    fn init_registers_badge_and_precommit_framework_templates() {
+        assert!(template_for_path("agent/badge.toml").is_some());
+        assert!(template_for_path(".pre-commit-config.yaml").is_some());
+        let policy = template_for_path("agent/audit-policy.toml")
+            .expect("audit-policy template")
+            .body;
+        assert!(policy.contains("[precommit_gate]"));
+        assert!(policy.contains("blocking = false"));
+        assert!(
+            !PROVE_WORKFLOW.contains("jankurai prove"),
+            "init must not advertise supervised prove/receipts as execution"
+        );
+    }
+}

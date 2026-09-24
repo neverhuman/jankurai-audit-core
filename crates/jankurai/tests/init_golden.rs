@@ -299,10 +299,11 @@ fn init_level_ci_adds_observe_workflow_and_preserves_existing_workflow() {
     apply.level = "ci".into();
     init::run(apply).unwrap();
     let workflow = fs::read_to_string(dir.path().join(".github/workflows/jankurai.yml")).unwrap();
-    assert!(workflow.contains("jankurai audit . --mode advisory"));
-    assert!(workflow.contains("toolchain: 1.97.1"));
+    assert!(workflow.contains("neverhuman/jankurai-action@4a45526"));
+    assert!(workflow.contains("release-tag: v1.7.0"));
+    assert!(workflow.contains("fail-under: \"85\""));
     assert!(workflow.contains("persist-credentials: false"));
-    assert!(!workflow.contains("Enforce score floor"));
+    assert!(!workflow.contains("cargo install jankurai"));
 
     let existing_dir = tempdir().unwrap();
     let workflow_path = existing_dir.path().join(".github/workflows/jankurai.yml");
@@ -349,49 +350,17 @@ edition = "2021"
     assert!(prepare.is_file());
     let pre_commit_text = fs::read_to_string(pre_commit).unwrap();
     assert!(
-        pre_commit_text.contains("JANKURAI_HOOK_MODE:-standard"),
+        pre_commit_text.contains("diff-audit --base-ref HEAD"),
         "{pre_commit_text}"
     );
-    assert!(pre_commit_text.contains("--full"), "{pre_commit_text}");
-    assert!(pre_commit_text.contains("--no-badge"), "{pre_commit_text}");
+    assert!(!pre_commit_text.contains("audit ."), "{pre_commit_text}");
+    assert!(!pre_commit_text.contains("--full"), "{pre_commit_text}");
     assert!(
         pre_commit_text.contains("JANKURAI_HOOK_REPORT_DIR"),
         "{pre_commit_text}"
     );
-    assert!(
-        pre_commit_text.contains("JANKURAI_HOOK_STAGE_ARTIFACTS"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        pre_commit_text.contains("JANKURAI_HISTORY_MIRROR"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        pre_commit_text.contains("JANKURAI_HISTORY_MIRROR_REQUIRED"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        pre_commit_text.contains("JANKURAI_SCORE_HISTORY_MAX_ROWS"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        pre_commit_text.contains("JANKURAI_SCORE_HISTORY_MAX_BYTES"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        !pre_commit_text.contains(".jankurai/repo-score.json"),
-        "{pre_commit_text}"
-    );
-    assert!(
-        !pre_commit_text.contains(".jankurai/score-history.jsonl"),
-        "{pre_commit_text}"
-    );
     let prepare_text = fs::read_to_string(prepare).unwrap();
     assert!(prepare_text.contains("Jankurai-Score:"));
-    assert!(
-        prepare_text.contains("target/jankurai/hooks/pre-commit-score.json"),
-        "{prepare_text}"
-    );
     let witness = dir.path().join("tools/jankurai-rust/witness.sh");
     assert!(witness.is_file());
     assert!(fs::read_to_string(dir.path().join("Justfile"))
@@ -474,19 +443,15 @@ fn hooks_install_yes_installs_local_hooks() {
     let pre_commit_text = fs::read_to_string(pre_commit).unwrap();
     assert!(pre_commit_text.contains("JANKURAI MANAGED HOOK: pre-commit"));
     assert!(
-        pre_commit_text.contains("JANKURAI_HOOK_REPORT_DIR"),
+        pre_commit_text.contains("diff-audit --base-ref HEAD"),
         "{pre_commit_text}"
     );
     assert!(
-        pre_commit_text.contains("JANKURAI_HOOK_STAGE_ARTIFACTS"),
+        pre_commit_text.contains("JANKURAI_HOOK_REPORT_DIR"),
         "{pre_commit_text}"
     );
     let prepare_text = fs::read_to_string(prepare).unwrap();
     assert!(prepare_text.contains("JANKURAI MANAGED HOOK: prepare-commit-msg"));
-    assert!(
-        prepare_text.contains("target/jankurai/hooks/pre-commit-score.json"),
-        "{prepare_text}"
-    );
 }
 
 #[test]
@@ -618,20 +583,16 @@ fn managed_pre_commit_wiring_with_controlled_auditor() {
         &stub,
         r#"#!/usr/bin/env bash
 set -euo pipefail
-json=""
-md=""
-history=""
+out=""
 prev=""
 for arg in "$@"; do
-  if [ "$prev" = "--json" ]; then json="$arg"; fi
-  if [ "$prev" = "--md" ]; then md="$arg"; fi
-  if [ "$prev" = "--score-history" ]; then history="$arg"; fi
+  if [ "$prev" = "--out-dir" ]; then out="$arg"; fi
   prev="$arg"
 done
-test -n "$json"
-printf '%s\n' '{"score":90,"raw_score":90,"findings":[],"caps_applied":[],"decision":{"status":"pass","passed":true,"minimum_score":85,"hard_findings":0,"soft_findings":0}}' > "$json"
-if [ -n "$md" ]; then printf 'score 90\n' > "$md"; fi
-if [ -n "$history" ]; then printf '%s\n' '{"score":90}' >> "$history"; fi
+test -n "$out"
+mkdir -p "$out"
+printf '%s\n' '{"score":90,"raw_score":90,"findings":[],"caps_applied":[],"hard_findings":0}' > "$out/diff-score.json"
+printf 'diff-audit pass\n' > "$out/diff-score.md"
 "#,
     )
     .unwrap();
@@ -652,9 +613,10 @@ if [ -n "$history" ]; then printf '%s\n' '{"score":90}' >> "$history"; fi
         dir.path(),
         &["commit", "-m", "Touch with controlled auditor"],
     );
-    let message = git_stdout(dir.path(), &["log", "-1", "--format=%B"]);
-    assert!(message.contains("Jankurai-Score:"), "{message}");
-    assert!(dir.path().join(".git/jankurai/last-score.env").is_file());
+    assert!(dir
+        .path()
+        .join("target/jankurai/diff/diff-score.json")
+        .is_file());
 }
 
 #[test]
@@ -684,7 +646,7 @@ fn managed_pre_commit_blocks_failing_standard_audit() {
     );
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("audit decision failed") || stderr.contains("pre-commit audit failed"),
+        stderr.contains("diff-audit blocked") || stderr.contains("diff-audit failed"),
         "{stderr}"
     );
 }
@@ -709,20 +671,16 @@ fn managed_pre_commit_retains_failed_report_after_prior_pass() {
         &pass_stub,
         r#"#!/usr/bin/env bash
 set -euo pipefail
-json=""
-md=""
-history=""
+out=""
 prev=""
 for arg in "$@"; do
-  if [ "$prev" = "--json" ]; then json="$arg"; fi
-  if [ "$prev" = "--md" ]; then md="$arg"; fi
-  if [ "$prev" = "--score-history" ]; then history="$arg"; fi
+  if [ "$prev" = "--out-dir" ]; then out="$arg"; fi
   prev="$arg"
 done
-test -n "$json"
-printf '%s\n' '{"score":95,"raw_score":95,"findings":[],"caps_applied":[],"decision":{"status":"pass","passed":true,"minimum_score":85,"hard_findings":0,"soft_findings":0}}' > "$json"
-if [ -n "$md" ]; then printf 'score 95 pass\n' > "$md"; fi
-if [ -n "$history" ]; then printf '%s\n' '{"score":95,"decision":{"passed":true}}' >> "$history"; fi
+test -n "$out"
+mkdir -p "$out"
+printf '%s\n' '{"score":95,"raw_score":95,"findings":[],"caps_applied":[],"hard_findings":0}' > "$out/diff-score.json"
+printf 'score 95 pass\n' > "$out/diff-score.md"
 "#,
     )
     .unwrap();
@@ -731,20 +689,16 @@ if [ -n "$history" ]; then printf '%s\n' '{"score":95,"decision":{"passed":true}
         &fail_stub,
         r#"#!/usr/bin/env bash
 set -euo pipefail
-json=""
-md=""
-history=""
+out=""
 prev=""
 for arg in "$@"; do
-  if [ "$prev" = "--json" ]; then json="$arg"; fi
-  if [ "$prev" = "--md" ]; then md="$arg"; fi
-  if [ "$prev" = "--score-history" ]; then history="$arg"; fi
+  if [ "$prev" = "--out-dir" ]; then out="$arg"; fi
   prev="$arg"
 done
-test -n "$json"
-printf '%s\n' '{"score":70,"raw_score":70,"findings":[{"severity":"high"}],"caps_applied":[],"decision":{"status":"fail","passed":false,"minimum_score":85,"hard_findings":1,"soft_findings":0}}' > "$json"
-if [ -n "$md" ]; then printf 'score 70 fail\n' > "$md"; fi
-if [ -n "$history" ]; then printf '%s\n' '{"score":70,"decision":{"passed":false}}' >> "$history"; fi
+test -n "$out"
+mkdir -p "$out"
+printf '%s\n' '{"score":70,"raw_score":70,"findings":[{"severity":"high"}],"caps_applied":[],"hard_findings":1}' > "$out/diff-score.json"
+printf 'score 70 fail\n' > "$out/diff-score.md"
 exit 1
 "#,
     )
@@ -770,10 +724,8 @@ exit 1
         &["commit", "-m", "pass with controlled auditor"],
     );
 
-    let report_json = dir
-        .path()
-        .join("target/jankurai/hooks/pre-commit-score.json");
-    let report_md = dir.path().join("target/jankurai/hooks/pre-commit-score.md");
+    let report_json = dir.path().join("target/jankurai/diff/diff-score.json");
+    let report_md = dir.path().join("target/jankurai/diff/diff-score.md");
     let pass_json = fs::read_to_string(&report_json).unwrap();
     assert!(pass_json.contains("\"score\":95"), "{pass_json}");
     assert_eq!(
@@ -803,24 +755,13 @@ exit 1
     let failed_md = fs::read_to_string(&report_md).unwrap();
     assert!(
         failed_json.contains("\"score\":70"),
-        "failed audit JSON must replace the prior pass report\n{failed_json}"
+        "failed diff-audit JSON must replace the prior pass report\n{failed_json}"
     );
     assert!(
         !failed_json.contains("\"score\":95"),
         "prior pass report must not remain as the latest artifact\n{failed_json}"
     );
     assert_eq!(failed_md.trim(), "score 70 fail");
-    assert!(
-        !dir.path().join(".git/jankurai/hooks").exists()
-            || fs::read_dir(dir.path().join("target/jankurai/hooks"))
-                .unwrap()
-                .filter_map(|entry| entry.ok())
-                .all(|entry| !entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with(".pre-commit.")),
-        "work directory must be cleaned by the EXIT trap"
-    );
 }
 
 #[test]
@@ -1509,7 +1450,7 @@ fn init_adapter_sync_includes_command_workflows() {
         ),
         (
             ".agents/workflows/jankurai-prove.md",
-            "jankurai prove . --changed",
+            "jankurai proof . --changed",
         ),
         (
             ".agents/workflows/jankurai-witness.md",

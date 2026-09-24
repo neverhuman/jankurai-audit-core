@@ -20,7 +20,8 @@ const INSTALL_MANIFEST_SCHEMA_VERSION: &str = "1.0.0";
 const CLIENT_START_TTL_SECS: u64 = 60 * 30;
 const AUDIT_NETWORK_TIMEOUT_MS: u64 = 400;
 const DEFAULT_INSTALL_SOURCE: &str = "github";
-const DEFAULT_SOURCE_URL: &str = "https://github.com/jeppsontaylor/Jankurai.git";
+const DEFAULT_SOURCE_URL: &str = "https://github.com/neverhuman/jankurai.git";
+const DEFAULT_INSTALLER_REPO: &str = "neverhuman/jankurai";
 const DEFAULT_UPDATE_CHANNEL: &str = "stable";
 const MANUAL_UPGRADE_COMMAND: &str = "jankurai upgrade";
 const NO_UPDATE_CHECK_ENV: &str = "JANKURAI_NO_UPDATE_CHECK";
@@ -1482,42 +1483,121 @@ fn build_install_command(
     latest_version: Option<&str>,
     install_root: Option<&str>,
 ) -> Result<Vec<String>> {
-    let mut cmd = vec!["cargo".into(), "install".into()];
     match resolved_source {
         "local" => {
-            cmd.push("--path".into());
-            cmd.push(repo.join("crates/jankurai").display().to_string());
-            cmd.push("--locked".into());
-            cmd.push("--force".into());
+            let mut cmd = vec![
+                "cargo".into(),
+                "install".into(),
+                "--path".into(),
+                repo.join("crates/jankurai").display().to_string(),
+                "--locked".into(),
+                "--force".into(),
+            ];
+            if let Some(root) = install_root {
+                cmd.push("--root".into());
+                cmd.push(root.into());
+            }
+            Ok(cmd)
         }
         "github" | "git" => {
-            let url = source_url.unwrap_or(DEFAULT_SOURCE_URL);
-            let tag = latest_version
-                .map(|version| format!("v{version}"))
-                .ok_or_else(|| anyhow::anyhow!("git source requires a latest version tag"))?;
-            cmd.push("--git".into());
-            cmd.push(url.into());
-            cmd.push("--tag".into());
-            cmd.push(tag);
-            cmd.push("--package".into());
-            cmd.push("jankurai".into());
-            cmd.push("--locked".into());
-            cmd.push("--force".into());
+            let _ = source_url;
+            Ok(verified_installer_command(latest_version, install_root)?)
         }
-        "crates-io" => {
-            cmd.push("jankurai".into());
-            cmd.push("--locked".into());
-            cmd.push("--force".into());
-        }
-        other => {
-            return Err(anyhow::anyhow!("unsupported install source `{other}`"));
+        "crates-io" => Err(anyhow::anyhow!(
+            "crates.io is not a verified split-family install source; use `jankurai upgrade` (signed GitHub installer) or `--source local`"
+        )),
+        other => Err(anyhow::anyhow!("unsupported install source `{other}`")),
+    }
+}
+
+/// Signed public installer. Same command the README documents.
+/// Downloads the installer to a temp file, then runs it. Never interpolates
+/// an unvalidated tag into a shell command.
+pub fn verified_installer_command(
+    latest_version: Option<&str>,
+    install_root: Option<&str>,
+) -> Result<Vec<String>> {
+    let version = latest_version.unwrap_or(AUDITOR_VERSION);
+    let tag = release_tag(version)?;
+    let url = format!(
+        "https://raw.githubusercontent.com/{DEFAULT_INSTALLER_REPO}/{tag}/jankurai-installer.sh"
+    );
+    let install_dir = installer_bin_dir(install_root);
+    // Download then exec. Piping curl to bash would run bytes before the
+    // installer script's own checksum/Sigstore checks can start.
+    let script = format!(
+        "set -euo pipefail; tmp=$(mktemp); trap 'rm -f -- \"$tmp\"' EXIT; curl --proto '=https' --tlsv1.2 -fsSL {url} -o \"$tmp\"; bash \"$tmp\" --tag {tag} --install-dir {}",
+        shell_quote(&install_dir)
+    );
+    Ok(vec![
+        "bash".into(),
+        "-o".into(),
+        "pipefail".into(),
+        "-c".into(),
+        script,
+    ])
+}
+
+/// Match jankurai-installer.sh: `vMAJOR.MINOR.PATCH` with optional `[.-]suffix`.
+fn release_tag(version: &str) -> Result<String> {
+    let tag = if version.starts_with('v') {
+        version.to_string()
+    } else {
+        format!("v{version}")
+    };
+    let rest = tag.strip_prefix('v').unwrap_or("");
+    let mut parts = rest.splitn(3, '.');
+    let major = parts.next().unwrap_or("");
+    let minor = parts.next().unwrap_or("");
+    let last = parts.next().unwrap_or("");
+    if major.is_empty()
+        || minor.is_empty()
+        || last.is_empty()
+        || !major.chars().all(|c| c.is_ascii_digit())
+        || !minor.chars().all(|c| c.is_ascii_digit())
+    {
+        bail!("invalid release tag `{tag}`");
+    }
+    let patch_len = last
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(last.len());
+    if patch_len == 0 {
+        bail!("invalid release tag `{tag}`");
+    }
+    let suffix = &last[patch_len..];
+    if !suffix.is_empty() {
+        let first = suffix.chars().next().unwrap();
+        if (first != '-' && first != '.')
+            || suffix.len() == 1
+            || !suffix[1..]
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-')
+        {
+            bail!("invalid release tag `{tag}`");
         }
     }
+    Ok(tag)
+}
+
+fn installer_bin_dir(install_root: Option<&str>) -> String {
     if let Some(root) = install_root {
-        cmd.push("--root".into());
-        cmd.push(root.into());
+        let path = Path::new(root);
+        if path.file_name().and_then(|name| name.to_str()) == Some("bin") {
+            return root.to_string();
+        }
+        return path.join("bin").display().to_string();
     }
-    Ok(cmd)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            if parent.file_name().and_then(|name| name.to_str()) == Some("bin") {
+                return parent.display().to_string();
+            }
+        }
+    }
+    std::env::var("HOME")
+        .ok()
+        .map(|home| Path::new(&home).join(".local/bin").display().to_string())
+        .unwrap_or_else(|| "/usr/local/bin".into())
 }
 
 #[cfg(test)]
@@ -1922,5 +2002,43 @@ mod tests {
         if let Some(root_pos) = command.iter().position(|arg| arg == "--root") {
             assert!(!command[root_pos + 1].ends_with("/bin"));
         }
+    }
+
+    #[test]
+    fn github_self_update_uses_signed_neverhuman_installer() {
+        let command =
+            verified_installer_command(Some("1.7.0"), Some("/tmp/jankurai-install")).unwrap();
+        assert_eq!(command[0], "bash");
+        assert!(command.iter().any(|arg| arg == "pipefail"));
+        let script = command.last().expect("installer script");
+        assert!(script.contains("neverhuman/jankurai"));
+        assert!(script.contains("jankurai-installer.sh"));
+        assert!(script.contains("--tag v1.7.0"));
+        assert!(script.contains("mktemp"));
+        assert!(!script.contains("| bash"));
+        assert!(!script.contains("jeppsontaylor"));
+        assert!(!script.contains("cargo install"));
+        assert!(script.contains("/tmp/jankurai-install"));
+    }
+
+    #[test]
+    fn release_tag_rejects_shell_metacharacters() {
+        for bad in ["v1.7.0;id", "v1.7.0/$(reboot)", "1.7.0;reboot", "latest"] {
+            let err = verified_installer_command(Some(bad), None).unwrap_err();
+            assert!(
+                err.to_string().contains("invalid release tag"),
+                "{bad}: {err}"
+            );
+        }
+        assert_eq!(release_tag("1.7.0").unwrap(), "v1.7.0");
+        assert_eq!(release_tag("v1.7.0").unwrap(), "v1.7.0");
+    }
+
+    #[test]
+    fn crates_io_is_not_a_verified_install_source() {
+        let repo = tempdir().unwrap();
+        let err =
+            build_install_command(repo.path(), "crates-io", None, Some("1.7.0"), None).unwrap_err();
+        assert!(err.to_string().contains("verified"));
     }
 }

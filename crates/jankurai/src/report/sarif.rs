@@ -2,7 +2,7 @@ use crate::model::{Finding, Report};
 use serde_json::json;
 
 /// Stable public URL for repo-relative doc paths (SARIF `helpUri` for Git viewers and CI).
-const DOCS_URI_BASE: &str = "https://github.com/jeppsontaylor/jankurai/blob/main/";
+const DOCS_URI_BASE: &str = "https://github.com/neverhuman/jankurai/blob/main/";
 
 fn sarif_help_uri(docs: &Option<String>) -> Option<String> {
     let s = docs.as_ref()?.trim();
@@ -122,7 +122,7 @@ pub fn render_sarif(report: &Report) -> String {
                 "driver": {
                     "name": "jankurai",
                     "version": report.auditor_version,
-                    "informationUri": "https://github.com/jeppsontaylor/jankurai",
+                    "informationUri": "https://github.com/neverhuman/jankurai",
                     "rules": rules
                 }
             },

@@ -278,7 +278,7 @@ fn hlt021_sarif_rule_help_uri_is_https_and_result_has_region() {
         .expect("HLT-021 rule descriptor");
     let help = rule["helpUri"].as_str().expect("helpUri");
     assert!(
-        help.starts_with("https://github.com/jeppsontaylor/jankurai/blob/main/"),
+        help.starts_with("https://github.com/neverhuman/jankurai/blob/main/"),
         "expected absolute helpUri, got {help}"
     );
     assert!(
