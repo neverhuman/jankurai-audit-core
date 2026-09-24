@@ -1,21 +1,21 @@
 {
-  "report_fingerprint": "sha256:66b312a1bdb4ea0a7a8e1461e21d0e6dbff3c5a55abaaef281035f8c1511149b",
-  "input_fingerprint": "sha256:a6e63f4a4b8b2a8794809d341a6e158398255c3c3025e0c9e144740ad5ad8932",
-  "policy_fingerprint": "sha256:e77e2fe9945df0fb6f907f7f6c5bf798fc94d35f65987eab2d10314ee9da5a6c",
+  "report_fingerprint": "sha256:72750d9b88a7920e1e6f0f0ec5acd92e77432a525b57da51de50a4dec9e04a98",
+  "input_fingerprint": "sha256:5725de34b1cadebe7016416d9be5d2c674bd19a4ed94ebfe08ef96bbb273eb9e",
+  "policy_fingerprint": "sha256:fc5ea348feef7b57e77919306c172e861ec86a0213c45576d12972a753a8f44b",
   "manifest_fingerprints": {
     "owner_map": "sha256:4e4955eb7c4f9eb06525d340efbb3285cbf907533d4cc8333e1ca84fbf64b37b",
     "test_map": "sha256:becc4e512f7fadfc82cdd6aeab37212183b07dfe09649f6b22287f78e7f1021d",
     "generated_zones": "sha256:0a1e98fd93dec97d0146d9e1916e3a03cabede673959ef5c52fc76492cba2a36",
     "boundaries": "sha256:d3c49b1a3b22dce2ee579d733e9e16e98bd91c6017ab1a9842847fa25838f46e",
     "proof_lanes": "sha256:9a69fe6f7869eb70753818ce27d2a05f07763bb9a8001f5aacd1f4615afeb07e",
-    "standard_version": "sha256:03db81d94d767c7d59497c025fc5790194b71f3c99d4f7d1945b404e6ed69f28"
+    "standard_version": "sha256:baadfb269974090bb9db62242b9f5efa5f2191eb6aacb3fe5af3922c6a8b5707"
   },
   "dirty_worktree": false,
-  "generated_at": "1789109537",
+  "generated_at": "1790284463",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
-  "auditor_version": "1.7.0",
+  "auditor_version": "1.7.1",
   "schema_version": "1.9.0",
   "paper_edition": "2026.05-ed8",
   "target_stack_id": "rust-ts-vite-react-postgres-bounded-python",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1789109537",
-  "started_at": "1789109537",
-  "elapsed_ms": 43427,
+  "run_id": "1790284463",
+  "started_at": "1790284463",
+  "elapsed_ms": 42015,
   "scope": {
     "mode": "full",
     "paths": []
@@ -54,7 +54,7 @@
     }
   },
   "git": {
-    "head": "d763bab316660454e3fc49f9369b7f1f2b8f9a72",
+    "head": "6d1eec55cdacd64c98e40f5d6b88deda9a05c5cc",
     "base": null,
     "changed_files": 0,
     "mode": "full",
@@ -73,7 +73,7 @@
     ],
     "mode": "standard",
     "standard_version": "0.9.0",
-    "auditor_version": "1.7.0",
+    "auditor_version": "1.7.1",
     "schema_version": "1.9.0",
     "paper_edition": "2026.05-ed8",
     "target_stack": "rust-ts-vite-react-postgres-bounded-python"
@@ -315,11 +315,11 @@
         "rendered UX QA lane present or no web surface",
         "DOM geometry UX QA runtime found",
         "Rust property/integration tests present or no Rust surface",
-        "proofbind artifact found: surfaces=277 missing=277 high_or_critical_missing=70 verdict=review"
+        "proofbind artifact found: surfaces=4 missing=4 high_or_critical_missing=4 verdict=review"
       ],
       "notes": [
-        "proofbind reports 277 unresolved obligation(s)",
-        "proofbind reports 70 missing high/critical semantic proof obligation(s)"
+        "proofbind reports 4 unresolved obligation(s)",
+        "proofbind reports 4 missing high/critical semantic proof obligation(s)"
       ]
     },
     {
@@ -1056,7 +1056,7 @@
     "artifact": {
       "path": "target/jankurai/security/evidence.json",
       "envelope_exit_code": 0,
-      "elapsed_ms": 4617,
+      "elapsed_ms": 4980,
       "wrapper_strict": true,
       "profile": "ci",
       "commands_ran": 8,
@@ -1065,8 +1065,8 @@
       "required_commands_skipped": 0,
       "required_commands_failed": 0,
       "blocking_commands": [],
-      "generated_at": "1789109390",
-      "git_head": "d763bab316660454e3fc49f9369b7f1f2b8f9a72"
+      "generated_at": "1790279875",
+      "git_head": "bb4002632c7190eb27ff589a39132195f5f96f23"
     }
   },
   "boundaries": {
@@ -1086,9 +1086,9 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-09-11T06:51:35.204783733+00:00",
+    "generated_at": "2026-09-24T21:13:43.228959757+00:00",
     "repo": ".",
-    "auditor_version": "1.7.0",
+    "auditor_version": "1.7.1",
     "status": "review",
     "policy": {
       "active_source_only": true,
@@ -1124,20 +1124,20 @@
       ]
     },
     "summary": {
-      "files_scanned": 496,
+      "files_scanned": 495,
       "files_considered": 128,
       "active_files": 128,
       "exact_file_classes": 0,
       "hard_classes": 0,
-      "warning_classes": 31,
+      "warning_classes": 32,
       "hard_instances": 0,
-      "warning_instances": 84,
-      "duplicate_lines": 73,
-      "duplicate_tokens": 181,
-      "duplicate_bytes": 2032,
-      "total_redundant_lines": 103,
-      "total_redundant_tokens": 267,
-      "total_redundant_bytes": 2909
+      "warning_instances": 86,
+      "duplicate_lines": 76,
+      "duplicate_tokens": 191,
+      "duplicate_bytes": 2145,
+      "total_redundant_lines": 106,
+      "total_redundant_tokens": 277,
+      "total_redundant_bytes": 3022
     },
     "classes": [
       {
@@ -1211,8 +1211,8 @@
           {
             "path": "crates/jankurai/src/commands/update.rs",
             "language": "rust",
-            "start_line": 1685,
-            "end_line": 1690,
+            "start_line": 1765,
+            "end_line": 1770,
             "unit_name": "rel_path"
           }
         ]
@@ -1606,6 +1606,41 @@
         ]
       },
       {
+        "id": "copy-code-body-rust-7b8daa4548e5fccf",
+        "kind": "exact_unit_different_name",
+        "severity": "warning",
+        "confidence": "medium",
+        "language": "rust",
+        "duplicate_lines": 3,
+        "duplicate_tokens": 10,
+        "duplicate_bytes": 113,
+        "instance_count": 2,
+        "total_redundant_lines": 3,
+        "total_redundant_tokens": 10,
+        "total_redundant_bytes": 113,
+        "effective_severity": "warning",
+        "hard_fail": false,
+        "fingerprint": "989162246be8dc89",
+        "reason": "same body appears under different names across files",
+        "recommended_action": "choose one owner for the shared body or intentionally differentiate the behavior",
+        "instances": [
+          {
+            "path": "crates/jankurai/src/init/plan.rs",
+            "language": "rust",
+            "start_line": 372,
+            "end_line": 375,
+            "unit_name": "filter_profile_manifest"
+          },
+          {
+            "path": "crates/jankurai/src/init/plan.rs",
+            "language": "rust",
+            "start_line": 487,
+            "end_line": 490,
+            "unit_name": "ensure_consumer_paths"
+          }
+        ]
+      },
+      {
         "id": "copy-code-unit-rust-12745c3d419bc220",
         "kind": "exact_unit_same_name",
         "severity": "warning",
@@ -1875,22 +1910,22 @@
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 537,
-            "end_line": 538,
+            "start_line": 586,
+            "end_line": 587,
             "unit_name": "level_required_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 546,
-            "end_line": 547,
+            "start_line": 595,
+            "end_line": 596,
             "unit_name": "level_optional_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 555,
-            "end_line": 556,
+            "start_line": 604,
+            "end_line": 605,
             "unit_name": "level_validation_commands"
           }
         ]
@@ -1925,8 +1960,8 @@
           {
             "path": "crates/jankurai/src/commands/update.rs",
             "language": "rust",
-            "start_line": 1675,
-            "end_line": 1677,
+            "start_line": 1755,
+            "end_line": 1757,
             "unit_name": "sha256_text"
           }
         ]
@@ -2164,15 +2199,15 @@
           {
             "path": "crates/jankurai/src/commands/rules.rs",
             "language": "rust",
-            "start_line": 269,
-            "end_line": 270,
+            "start_line": 301,
+            "end_line": 302,
             "unit_name": "repair_eligibility"
           },
           {
             "path": "crates/jankurai/src/commands/rules.rs",
             "language": "rust",
-            "start_line": 273,
-            "end_line": 274,
+            "start_line": 305,
+            "end_line": 306,
             "unit_name": "repair_risk"
           }
         ]
@@ -2199,15 +2234,15 @@
           {
             "path": "crates/jankurai/src/commands/rules.rs",
             "language": "rust",
-            "start_line": 277,
-            "end_line": 278,
+            "start_line": 309,
+            "end_line": 310,
             "unit_name": "rule_status"
           },
           {
             "path": "crates/jankurai/src/commands/rules.rs",
             "language": "rust",
-            "start_line": 285,
-            "end_line": 286,
+            "start_line": 317,
+            "end_line": 318,
             "unit_name": "confidence_policy"
           }
         ]

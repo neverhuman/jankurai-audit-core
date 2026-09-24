@@ -5,7 +5,7 @@ Generated from `jankurai rules export`. Regenerate this file from the registry a
 Language bad-behavior rules can false-positive on idiomatic code. This catalog does not add per-language allowlist goldens.
 
 - rules: `48`
-- auditor: `1.7.0`
+- auditor: `1.7.1`
 
 | Rule | Name | Lane | Severity | Status | Confidence | Repair |
 | --- | --- | --- | --- | --- | --- | --- |

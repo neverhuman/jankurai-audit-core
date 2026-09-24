@@ -7,6 +7,12 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+### Changed
+
+- Public package version and `AUDITOR_VERSION` are `1.7.1`. Standard `0.9.0` and schema `1.9.0` are unchanged.
+- The kernel pin is `ci-cd94f46d3b4ba3b60780b996ed5f7d1f559dfaef`.
+- The accepted ratchet baseline is a fresh full audit at auditor `1.7.1`. Score stays 91 with no hard findings. The previous baseline was auditor `1.7.0`, and ratchet treats that identity change as policy drift.
+
 ### Added
 
 - `docs/rule-catalog.md` lists every registry rule with name, lane, severity,

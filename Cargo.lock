@@ -877,7 +877,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "jankurai"
-version = "1.7.0"
+version = "1.7.1"
 dependencies = [
  "aho-corasick",
  "anyhow",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "jankurai-audit-kernel"
 version = "0.1.0"
-source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=a9dfb86457267a76e30e78c96263ade80c0d3c95#a9dfb86457267a76e30e78c96263ade80c0d3c95"
+source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=cd94f46d3b4ba3b60780b996ed5f7d1f559dfaef#cd94f46d3b4ba3b60780b996ed5f7d1f559dfaef"
 dependencies = [
  "aho-corasick",
  "anyhow",
@@ -2425,7 +2425,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

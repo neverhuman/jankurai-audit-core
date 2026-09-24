@@ -1,6 +1,6 @@
 [package]
 name = "jankurai"
-version = "1.7.0"
+version = "1.7.1"
 edition = "2021"
 description = "Agent-native repository audit CLI and standard."
 license = "MIT"
@@ -20,7 +20,7 @@ ignore = "0.4"
 jsonschema = { version = "=0.55.1", default-features = false, features = ["idna"] }
 jankurai-audit-analyzers = { git = "https://github.com/neverhuman/jankurai-tools-analyzers.git", tag = "ci-eeda8c050c72b2081cb76fe197448e387ef8320c", package = "jankurai-audit-analyzers", version = "0.1.0" }
 jankurai-audit-dedup = { git = "https://github.com/neverhuman/jankurai-tools-dedup.git", tag = "ci-602b608c59690020eb66a2069f67d33a75b481f1", package = "jankurai-audit-dedup", version = "0.1.0" }
-jankurai-audit-kernel = { git = "https://github.com/neverhuman/jankurai-tools-kernel.git", tag = "ci-a9dfb86457267a76e30e78c96263ade80c0d3c95", package = "jankurai-audit-kernel", version = "0.1.0" }
+jankurai-audit-kernel = { git = "https://github.com/neverhuman/jankurai-tools-kernel.git", tag = "ci-cd94f46d3b4ba3b60780b996ed5f7d1f559dfaef", package = "jankurai-audit-kernel", version = "0.1.0" }
 jankurai-fleet = { git = "https://github.com/neverhuman/jankurai-tools-fleet.git", tag = "ci-668532cd06f87aec6b677ab061405e51871e57b8", package = "jankurai-fleet", version = "0.1.0" }
 jankurai-guard = { git = "https://github.com/neverhuman/jankurai-tools-guard.git", tag = "ci-ac11dec26907b986c62b1112fc6e781e1e2894c3", package = "jankurai-guard", version = "0.1.0", default-features = false }
 jankurai-proofbind = { git = "https://github.com/neverhuman/jankurai-tools-proof.git", tag = "ci-00c8ea71b7cfe94f3bf4be6a74675e8d54f7a70c", package = "jankurai-proofbind", version = "0.8.0" }
