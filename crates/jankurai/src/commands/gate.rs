@@ -288,12 +288,17 @@ fn resolve_baseline_score(repo: &Path, explicit: Option<&str>) -> Option<i32> {
 
 /// Collect staged changes, optionally unioned with unstaged worktree changes.
 /// Returns an empty vec when git is unreachable, which signals the caller to run
-/// a full-repo audit.
+/// a full-repo audit. `--no-ext-diff` keeps an inherited `diff.external` out of
+/// the answer: the auditor reads Git's own inventory, never a user's diff tool.
 fn collect_changed_paths(repo: &Path, staged_only: bool) -> Vec<PathBuf> {
     let mut set: BTreeSet<PathBuf> = BTreeSet::new();
-    push_git_diff_names(repo, &["diff", "--name-only", "--cached"], &mut set);
+    push_git_diff_names(
+        repo,
+        &["diff", "--no-ext-diff", "--name-only", "--cached"],
+        &mut set,
+    );
     if !staged_only {
-        push_git_diff_names(repo, &["diff", "--name-only"], &mut set);
+        push_git_diff_names(repo, &["diff", "--no-ext-diff", "--name-only"], &mut set);
     }
     set.into_iter().collect()
 }

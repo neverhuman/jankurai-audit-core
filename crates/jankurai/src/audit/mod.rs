@@ -1538,6 +1538,11 @@ fn path_matches_scope(rel_path: &str, scopes: &[String]) -> bool {
     })
 }
 
+/// Paths a changed-fast run still inventories even when untouched. A cap is a
+/// statement about the whole repository, so evidence that lives outside the
+/// changed set must stay visible; otherwise changed-fast invents caps the full
+/// audit does not apply (rendered UX lanes, release readiness, agent-readable
+/// docs, contract/schema/data truth).
 fn changed_fast_inventory_paths(scope_paths: &[String]) -> Vec<String> {
     let mut paths: BTreeSet<String> = scope_paths.iter().cloned().collect();
     for path in [
