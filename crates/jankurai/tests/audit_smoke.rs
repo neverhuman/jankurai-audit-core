@@ -1672,3 +1672,111 @@ fn audit_ast_pilot_detects_typescript_web_impurity() {
         .problem
         .contains("UI layer directly imports backend module")));
 }
+
+#[test]
+fn hlt006_interface_copy_shaped_like_a_statement_does_not_cap() {
+    let dir = tempdir().unwrap();
+    write_audit_notice_fixture(dir.path());
+    fs::create_dir_all(dir.path().join("apps/web/src")).unwrap();
+    fs::write(
+        dir.path().join("apps/web/src/copy.ts"),
+        "export const hint = \"Select a dataset from the sidebar\";\n// SELECT id FROM users lives in the adapter\n",
+    )
+    .unwrap();
+    let report = run_audit(dir.path(), &[]).unwrap();
+    assert!(
+        !report.findings.iter().any(|finding| {
+            finding.rule_id.as_deref() == Some("HLT-006-DIRECT-DB-WRONG-LAYER")
+                && finding.path.starts_with("apps/web/")
+        }),
+        "interface copy and comments must not cap"
+    );
+}
+
+#[test]
+fn hlt042_scaffold_gaps_are_advisory_and_do_not_cap() {
+    let dir = tempdir().unwrap();
+    write_audit_notice_fixture(dir.path());
+    fs::create_dir_all(dir.path().join(".github/workflows")).unwrap();
+    fs::write(
+        dir.path().join(".github/workflows/ci.yml"),
+        "jobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: cargo test\n",
+    )
+    .unwrap();
+    let report = run_audit(dir.path(), &[]).unwrap();
+    let hlt042 = report
+        .findings
+        .iter()
+        .filter(|f| f.rule_id.as_deref() == Some("HLT-042-CI-LOCAL-PARITY"))
+        .collect::<Vec<_>>();
+    assert!(!hlt042.is_empty(), "scaffold gaps are still reported");
+    assert!(
+        hlt042.iter().all(|f| f.severity == "medium"),
+        "scaffold gaps are advisory: {hlt042:?}"
+    );
+    assert!(
+        !report.caps_applied.iter().any(|c| c == "ci-local-parity"),
+        "scaffold gaps must not cap: {:?}",
+        report.caps_applied
+    );
+
+    fs::write(
+        dir.path().join(".github/workflows/ci.yml"),
+        "jobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: bash ops/ci/quality-gates.sh\n",
+    )
+    .unwrap();
+    let report = run_audit(dir.path(), &[]).unwrap();
+    assert!(
+        report.caps_applied.iter().any(|c| c == "ci-local-parity"),
+        "a workflow calling a missing script still caps: {:?}",
+        report.caps_applied
+    );
+}
+
+#[test]
+fn reference_profile_opt_out_makes_every_cell_not_applicable() {
+    let dir = tempdir().unwrap();
+    write_audit_notice_fixture(dir.path());
+    fs::create_dir_all(dir.path().join("frontend/src")).unwrap();
+    fs::write(
+        dir.path().join("frontend/src/main.ts"),
+        "export const x = 1;\n",
+    )
+    .unwrap();
+    let enforced = run_audit(dir.path(), &[]).unwrap();
+    assert!(
+        enforced.profile_structure.applicable_count > 0,
+        "a frontend/ surface is judged against the reference layout by default"
+    );
+    fs::write(
+        dir.path().join("agent/audit-policy.toml"),
+        "[reference_profile]\nenforce = false\n",
+    )
+    .unwrap();
+    let opted_out = run_audit(dir.path(), &[]).unwrap();
+    assert_eq!(opted_out.profile_structure.applicable_count, 0);
+    assert!(opted_out
+        .profile_structure
+        .cells
+        .iter()
+        .all(|cell| cell.status == "not_applicable"));
+}
+
+#[test]
+fn hlt008_coverage_lane_not_run_is_not_a_finding() {
+    let dir = tempdir().unwrap();
+    write_audit_notice_fixture(dir.path());
+    fs::write(
+        dir.path().join("agent/coverage-sources.toml"),
+        "schema_version = \"1.0.0\"\n",
+    )
+    .unwrap();
+    let report = run_audit(dir.path(), &[]).unwrap();
+    assert!(
+        !report
+            .findings
+            .iter()
+            .any(|f| f.problem.contains("configured but has not been run")),
+        "a clean checkout cannot hold coverage output"
+    );
+}

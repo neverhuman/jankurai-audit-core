@@ -118,9 +118,21 @@ const CELL_SPECS: &[ProfileCellSpec] = &[
 ];
 
 pub fn analyze(ctx: &AuditContext) -> ProfileStructureReadiness {
+    // `[reference_profile] enforce = false` opts a repository out of the reference folder
+    // layout: every cell is then not applicable, so it neither emits findings nor moves the
+    // ownership score. Repositories that do not opt out are judged exactly as before.
+    let enforced = crate::audit::fs_policy::reference_profile_enforced(&ctx.root);
     let cells = CELL_SPECS
         .iter()
-        .map(|spec| profile_cell(ctx, spec))
+        .map(|spec| {
+            let mut cell = profile_cell(ctx, spec);
+            if !enforced {
+                cell.applicable = false;
+                cell.status = "not_applicable".into();
+                cell.guidance_status = "not_applicable".into();
+            }
+            cell
+        })
         .collect::<Vec<_>>();
     let applicable_count = cells.iter().filter(|cell| cell.applicable).count();
     let canonical_count = cells

@@ -1127,6 +1127,21 @@ fn build_findings(
         );
     }
     for hit in ci_local_parity::findings(ctx) {
+        // Only a workflow calling a missing script is hard; the rest of the preferred scaffold
+        // is reported as an advisory finding that neither caps nor fails the gate.
+        if !ci_local_parity::is_hard(&hit) {
+            b.add(
+                "medium",
+                "ci",
+                &hit.path,
+                &hit.problem,
+                &hit.agent_fix,
+                hit.evidence,
+                Some(hit.rule_id),
+                hit.line,
+            );
+            continue;
+        }
         b.add_with_rule(
             hit.rule_id,
             &hit.path,

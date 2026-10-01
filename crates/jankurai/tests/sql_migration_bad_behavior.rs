@@ -322,3 +322,34 @@ fn repo_without_sql_or_database_setup_has_no_migration_findings_or_cap() {
         report.caps_applied
     );
 }
+
+#[test]
+fn applied_through_skips_frozen_migrations_and_judges_new_ones() {
+    let repo = tempdir().unwrap();
+    write_minimal_standard_repo(repo.path());
+    let unsafe_sql =
+        "BEGIN;\nCREATE INDEX CONCURRENTLY idx_orders_user ON orders(user_id);\nCOMMIT;\n";
+    write(
+        &repo.path().join("db/migrations/001_concurrent.sql"),
+        unsafe_sql,
+    );
+    write(&repo.path().join("db/migrations/002_next.sql"), unsafe_sql);
+    write(
+        &repo.path().join("agent/audit-policy.toml"),
+        "[sql_migrations]\napplied_through = [\"db/migrations/001_concurrent.sql\"]\n",
+    );
+
+    let findings = findings_for(repo.path(), "HLT-030-SQL-BAD-BEHAVIOR");
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.path == "db/migrations/001_concurrent.sql"),
+        "an applied migration cannot be edited and must not be judged: {findings:?}"
+    );
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.path == "db/migrations/002_next.sql"),
+        "a migration after applied_through is still judged: {findings:?}"
+    );
+}
