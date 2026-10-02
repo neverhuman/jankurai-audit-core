@@ -5,7 +5,7 @@ Generated from `jankurai rules export`. Regenerate this file from the registry a
 Language bad-behavior rules can false-positive on idiomatic code. This catalog does not add per-language allowlist goldens.
 
 - rules: `48`
-- auditor: `1.7.1`
+- auditor: `1.7.2`
 
 | Rule | Name | Lane | Severity | Status | Confidence | Repair |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -55,5 +55,5 @@ Language bad-behavior rules can false-positive on idiomatic code. This catalog d
 | `HLT-044-WORKTREE-SPRAWL` | Worktree sprawl across same-origin sibling checkouts | `audit` | `high` | `experimental` | `medium` | consolidating parallel same-origin checkouts moves working state and needs human-led review before repair |
 | `HLT-045-GENERATED-ZONE-GOVERNANCE` | Hand-edit inside a declared generated zone | `contract` | `medium` | `experimental` | `medium` | generated-zone hand-edits should be re-derived from the source generator, not patched in place |
 | `HLT-046-UNNECESSARY-VARIETY` | Redundant variety where consistency is expected | `copy-code` | `medium` | `experimental` | `medium` | reconciling diverging same-name definitions into one canonical shape is scoped but needs review that callers still agree |
-| `HLT-047-CANONICAL-README` | README drifts from the canonical agent-native shape | `fast` | `medium` | `experimental` | `medium` | adding the missing README links, stack statement, badge, or quick-start is mechanical doc editing |
+| `HLT-047-CANONICAL-README` | README drifts from the canonical agent-native shape | `fast` | `medium` | `experimental` | `medium` | adding the missing stack statement, badge, quick-start, or an `@AGENTS.md` import is mechanical doc editing |
 | `HLT-048-CANONICAL-CI-GAP` | CI drifts from the canonical local-parity shape | `audit` | `medium` | `experimental` | `medium` | moving inline CI steps into ops/ci/*.sh, pinning action SHAs, and adding a jankurai audit lane is mechanical but should be proven by a green run |

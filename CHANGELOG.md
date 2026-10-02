@@ -7,6 +7,31 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-10-02
+
+1.7.2 carries the governed split.5 scoring, except where the owner chose 1.7
+behaviour (an omitted `fail_on` means critical+high, and conformance blockers
+block).
+
+### Changed
+
+- Public package version and `AUDITOR_VERSION` are `1.7.2`. Standard `0.9.0` and schema `1.9.0` are unchanged.
+- The kernel pin is `b4ef74d9d59651375dd5db1d1e9b7d953e447d17` and the
+  analyzers pin is `d9a57332c3d1951b2de0d63f877416834be9d04a`, the same
+  revisions `family.lock` names. 1.7.1 pinned analyzers `eeda8c0` here while
+  `family.lock` named `6cd5551`.
+- CI-cap findings (no audit lane, no security lane, no secret or dependency
+  scanning) and below-floor dimension findings point a forge-gated repository at
+  its `.jeryu/ci.toml` declaration instead of `.github/workflows`. GitHub
+  Actions and no-CI repositories keep their paths and wording.
+- Tool adoption credits CI evidence as split.5 does; HLT-001 ignores Rust
+  comments as split.5 does; HLT-047 checks CLAUDE.md/GEMINI.md reference
+  AGENTS.md; ZYAL placement (HLT-024) and repo-rot names (HLT-040) are scoped to
+  real signals. These live in the kernel and analyzers.
+- `docs/rule-catalog.md` is regenerated for auditor `1.7.2`.
+
+## [1.7.1]
+
 ### Changed
 
 - Public package version and `AUDITOR_VERSION` are `1.7.1`. Standard `0.9.0` and schema `1.9.0` are unchanged.
