@@ -38,7 +38,8 @@ pub mod zyal;
 use crate::model::*;
 use anyhow::Result;
 use caps::{caps_applied, CAPS};
-use finding_builder::{dimension_soft_route, FindingBuilder};
+use finding_builder::{dimension_soft_route_for, FindingBuilder};
+use jankurai_audit_kernel::audit::ci_provider;
 use helpers::AuditContext;
 pub use outcome::report_decision;
 use serde::Serialize;
@@ -591,8 +592,12 @@ fn build_findings(
     if caps_applied.contains(&"no-deterministic-fast-lane".into()) {
         b.add("high", "proof", ".", "no deterministic fast lane was detected", "add a fast lane that runs the narrowest deterministic proof loop and keep it canonical", vec!["no fast lane markers found".into()], Some("HLT-004-UNMAPPED-PROOF"), None);
     }
+    // CI-cap findings point at the surface that gates this repository: its
+    // `.jeryu/ci.toml` when the forge gates it, never a workflow file the forge
+    // would not execute.
+    let ci_route = ci_provider::ci_findings_path(&ctx.all_files);
     if caps_applied.contains(&"no-security-lane-on-high-risk-repo".into()) {
-        b.add_with_rule("HLT-009-GENERATED-SECURITY", ".github/workflows", "high-risk repo has no explicit security lane", "add a dedicated security lane with secret scanning, dependency review, and workflow linting", vec!["no security lane markers found".into()], None, None, None);
+        b.add_with_rule("HLT-009-GENERATED-SECURITY", ci_route, "high-risk repo has no explicit security lane", "add a dedicated security lane with secret scanning, dependency review, and workflow linting", vec!["no security lane markers found".into()], None, None, None);
     }
     if caps_applied.contains(&"generated-contracts-or-public-api-drift-untested".into()) {
         b.add_with_rule(
@@ -650,7 +655,7 @@ fn build_findings(
     if caps_applied.contains(&"no-secret-or-dependency-scanning-in-ci".into()) {
         b.add_with_rule(
             "HLT-016-SUPPLY-CHAIN-DRIFT",
-            ".github/workflows",
+            ci_route,
             "no secret or dependency scanning was found in CI",
             "add secret scanning, dependency review, and SBOM or provenance checks to CI",
             vec!["no CI scan markers found".into()],
@@ -704,7 +709,21 @@ fn build_findings(
         }
     }
     if caps_applied.contains(&"no-jankurai-audit-lane-in-ci".into()) {
-        b.add("high", "audit", ".github/workflows", "CI does not run the jankurai audit lane", "add a CI job that runs `jankurai . --json .jankurai/repo-score.json --md .jankurai/repo-score.md` and uploads both artifacts", vec!["audit output must stay JSON plus Markdown for agent repair routing".into()], None, None);
+        let fix = if ci_route == ci_provider::JERYU_DECLARATION_PATH {
+            ci_provider::audit_lane_fix(&ctx.all_files)
+        } else {
+            "add a CI job that runs `jankurai . --json .jankurai/repo-score.json --md .jankurai/repo-score.md` and uploads both artifacts".to_string()
+        };
+        b.add(
+            "high",
+            "audit",
+            ci_route,
+            "CI does not run the jankurai audit lane",
+            &fix,
+            vec!["audit output must stay JSON plus Markdown for agent repair routing".into()],
+            None,
+            None,
+        );
     }
 
     for hit in scan::manifest_parse_findings(ctx) {
@@ -1417,7 +1436,7 @@ fn build_findings(
         if dimension.name == "Jankurai tool adoption and CI replacement" {
             continue;
         }
-        let (category, path, rule_id, fix) = dimension_soft_route(&dimension.name);
+        let (category, path, rule_id, fix) = dimension_soft_route_for(ctx, &dimension.name);
         let evidence = if dimension.evidence.is_empty() && dimension.notes.is_empty() {
             vec![format!("{} scored {}", dimension.name, dimension.score)]
         } else {
