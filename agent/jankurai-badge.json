@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "standard": "jankurai",
   "standard_version": "0.9.0",
-  "auditor_version": "1.7.1",
+  "auditor_version": "1.7.2",
   "source_report": "agent/baselines/main.repo-score.json",
-  "source_badge_fingerprint": "sha256:e7af92f2d0ecb339bf51be4bac439c851ac0306b292464f4ffcc542663829d9a",
-  "score": 91,
-  "raw_score": 91,
+  "source_badge_fingerprint": "sha256:36b8c1b297f0f0d8d289db77ef3edef5b84d0590b94cb450b960df0f1d85bc22",
+  "score": 96,
+  "raw_score": 96,
   "minimum_score": 85,
   "decision": "pass",
   "passed": true,
@@ -17,5 +17,5 @@
   "conformance_level": "HL3",
   "badge_svg": "agent/jankurai-badge.svg",
   "readme": "README.md",
-  "markdown": "<!-- jankurai-badge:start -->\n[![Jankurai score: 91/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)\n<!-- jankurai-badge:end -->\n"
+  "markdown": "<!-- jankurai-badge:start -->\n[![Jankurai score: 96/100](agent/jankurai-badge.svg)](agent/jankurai-badge.json)\n<!-- jankurai-badge:end -->\n"
 }
