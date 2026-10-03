@@ -63,7 +63,9 @@ fn public_repo_scores_accepts_star_rank_source_shape() {
     assert!(rendered.contains("2/1"));
     assert!(rendered.contains("med 1; high 2"));
     assert!(rendered.find("example/alpha").unwrap() < rendered.find("example/beta").unwrap());
+    // Rendered tables carry repo slugs, never a local path from the machine
+    // that produced the source data.
     assert!(!rendered.contains("/Users/"));
-    assert!(!rendered.contains("/home/ubuntu"));
-    assert!(!rendered.contains("~/jankscore"));
+    assert!(!rendered.contains("/home/"));
+    assert!(!rendered.contains("~/"));
 }

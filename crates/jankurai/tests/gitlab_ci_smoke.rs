@@ -23,7 +23,11 @@ fn split_core_uses_local_reproducible_ci_entrypoints() {
     assert!(audit.contains("--full"));
     assert!(audit.contains("agent/baselines/main.repo-score.json"));
     assert!(audit.contains(".caps_applied | length"));
-    assert!(!audit.contains("/home/ubuntu/jankurai-split/jankurai"));
+    // The lane must build and run the auditor from the checkout, never from an
+    // absolute home path on whoever's machine wrote it.
+    assert!(!audit.contains("/home/"));
+    assert!(!audit.contains("/Users/"));
+    assert!(!audit.contains("~/"));
 
     let adoption = fs::read_to_string(root.join("ops/ci/tool-adoption.sh")).unwrap();
     assert!(adoption.contains("cargo build --locked --offline -p jankurai"));

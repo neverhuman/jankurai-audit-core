@@ -7,6 +7,16 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+### Changed
+
+- The bundled workspace-boundary template says "forge remote and merge-request
+  work" instead of naming this site's local GitLab and `glab`, and a new
+  `init_golden` test rejects any bundled template body carrying a host, home
+  path or login. Regenerated cell `AGENTS.md` adapters match.
+- The CI and paper tests assert that no home path (`/home/`, `/Users/`, `~/`)
+  reaches the audit lane or a rendered paper table, instead of naming one site's
+  paths.
+
 ## [1.7.2] - 2026-10-02
 
 1.7.2 carries the governed split.5 scoring, except where the owner chose 1.7

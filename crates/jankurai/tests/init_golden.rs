@@ -1538,3 +1538,25 @@ command = "echo custom"
         "must merge in standard fast lane from template"
     );
 }
+
+/// Templates are written into every adopting repository and this crate is
+/// published, so no bundled body may carry a site's hosts, home paths or logins.
+#[test]
+fn bundled_templates_carry_no_site_specifics() {
+    for template in jankurai::init::templates::TEMPLATES {
+        for marker in [
+            "/home/",
+            "/Users/",
+            "~/.jeryu",
+            "127.0.0.1",
+            "GitLab",
+            "glab",
+        ] {
+            assert!(
+                !template.body.contains(marker),
+                "{} names the site specific '{marker}'",
+                template.path
+            );
+        }
+    }
+}
