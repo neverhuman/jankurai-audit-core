@@ -29,8 +29,8 @@ just check
 ```
 
 The full command surface lives in the root [`Justfile`](Justfile). Continuous
-integration runs the same lanes under
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+integration runs the same `ops/ci/` lanes on the forge and our own hosts.
+GitHub is a publishing mirror only; it runs no workflows for this repository.
 
 ## Layout
 

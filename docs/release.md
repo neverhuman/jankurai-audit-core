@@ -27,12 +27,15 @@ Releases are cut by CI, not by hand:
    [`CHANGELOG.md`](../CHANGELOG.md).
 2. Run the full local gate: `just check` (format, lint, fast lane, security,
    self-audit).
-3. Push the version commit. The
-   [`ci.yml`](../.github/workflows/ci.yml) workflow runs the build, security, and
-   jankurai audit jobs and uploads the `repo-score` artifacts.
+3. Push the version commit. Forge CI on our hosts runs the build, security,
+   and jankurai audit lanes (`ops/ci/`) and keeps the `repo-score` artifacts.
 4. Tag the release commit with `jankurai-core-v<version>-split.<N>`. The tag
    mirror in [`.jeryu/repo.toml`](../.jeryu/repo.toml) publishes the immutable tag
    to the public GitHub mirror.
+
+GitHub is a publishing mirror only: CI runs on the forge and our hosts, and
+releases are built and signed on our servers. A separate change introduces
+key-based release signing.
 
 Release builds depend on immutable tags, never branches.
 

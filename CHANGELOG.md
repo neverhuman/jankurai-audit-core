@@ -7,6 +7,13 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+### Removed
+
+- GitHub Actions workflows. GitHub is a publishing mirror only; CI and scoring
+  run on the forge and our hosts. The workflow-only aggregate test,
+  `ops/ci/aggregate.sh` and the public-mirror tool bootstrap went with them,
+  and zizmor/actionlint are no longer required security tools.
+
 ## [1.7.3] - 2026-10-06
 
 1.7.3 carries the governed split.6 scoring (provider-aware CI credit), except

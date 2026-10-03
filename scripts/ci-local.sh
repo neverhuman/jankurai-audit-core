@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Local entry point for the CI lanes. Delegates to the exact same
-# ops/ci/<lane>.sh scripts the GitHub Actions workflow calls, so local runs
-# never drift from CI.
+# ops/ci/<lane>.sh scripts forge CI runs on our hosts, so local runs never
+# drift from CI.
 #
 # Every repository of the split family accepts the same lane names:
 #   required  fast  security  audit  gates  (all is an alias of gates)

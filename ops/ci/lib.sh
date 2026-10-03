@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared CI helper module sourced by every ops/ci/<lane>.sh script.
 # Single source of truth for tool version pins and artifact assertions so
-# local runs and GitHub Actions execute the exact same commands.
+# local runs and forge CI on our hosts execute the exact same commands.
 set -euo pipefail
 
 # Resolve the repository root regardless of where a lane is invoked from.
@@ -16,8 +16,6 @@ export RUST_TOOLCHAIN="${RUST_TOOLCHAIN:-1.97.1}"
 export GITLEAKS_VERSION="${GITLEAKS_VERSION:-8.21.2}"
 export CARGO_AUDIT_VERSION="${CARGO_AUDIT_VERSION:-0.22.1}"
 export CARGO_DENY_VERSION="${CARGO_DENY_VERSION:-0.19.8}"
-export ZIZMOR_VERSION="${ZIZMOR_VERSION:-1.25.2}"
-export ACTIONLINT_VERSION="${ACTIONLINT_VERSION:-1.7.8}"
 export SYFT_VERSION="${SYFT_VERSION:-1.40.0}"
 export GRYPE_VERSION="${GRYPE_VERSION:-0.99.0}"
 export NEXTEST_VERSION="${NEXTEST_VERSION:-0.9.137}"

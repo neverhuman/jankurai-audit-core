@@ -113,10 +113,6 @@
       "command": "bash scripts/ci-local.sh required",
       "purpose": "verify local CI and fusion helpers"
     },
-    ".github/": {
-      "command": "bash scripts/ci-local.sh required",
-      "purpose": "verify CI workflow entrypoints stay pinned and thin"
-    },
     "rust-toolchain.toml": {
       "command": "cargo check --workspace --locked",
       "purpose": "verify the pinned toolchain channel and components stay consistent"
