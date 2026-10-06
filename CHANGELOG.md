@@ -20,12 +20,22 @@ and conformance blockers block).
   as a soft (`low`) finding at `.jeryu/ci.toml` naming the lane, as split.6
   does. Such a lane already earned no credit; it used to be dropped silently.
 
+### Fixed
+
+- `jankurai coverage` accepts complete cargo-llvm-cov 0.8.7 LCOV, whose
+  `LF`/`LH` can exceed its `DA` records (analyzers `bbd7db9`). Declared totals
+  below the captured records, `LH` above `LF`, a record with `LF` but no `DA`,
+  and a missing `end_of_record` are still rejected.
+- `jankurai proofbind` no longer fails with "required input missing" when the
+  change deletes a file: a path Git reports as deleted is a removal, not a
+  required input (proof `2f187f1`, now pinned by `rev`).
+
 ### Changed
 
 - Public package version and `AUDITOR_VERSION` are `1.7.3`. Standard `0.9.0`
   and schema `1.9.0` are unchanged.
 - The kernel pin is `33b389305262eead003074ea8c523e8c9e3c43f6` and the
-  analyzers pin is `a03d7260d1f8a5c96a998708bd50e501680166e7`, the same
+  analyzers pin is `bbd7db9df39bebd9706252719b65261b197bbc08`, the same
   revisions `family.lock` names. They carry the split.6 provider-aware CI
   credit (proof CI presence, speed cache hint and security workflow lint read
   the resolved `.jeryu/ci.toml` lane; npm/pnpm/yarn lanes resolve through

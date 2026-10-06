@@ -914,7 +914,7 @@ dependencies = [
 [[package]]
 name = "jankurai-audit-analyzers"
 version = "0.1.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-analyzers.git?rev=a03d7260d1f8a5c96a998708bd50e501680166e7#a03d7260d1f8a5c96a998708bd50e501680166e7"
+source = "git+https://github.com/neverhuman/jankurai-tools-analyzers.git?rev=bbd7db9df39bebd9706252719b65261b197bbc08#bbd7db9df39bebd9706252719b65261b197bbc08"
 dependencies = [
  "anyhow",
  "globset",
@@ -1015,7 +1015,7 @@ dependencies = [
 [[package]]
 name = "jankurai-proofbind"
 version = "0.8.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?tag=ci-00c8ea71b7cfe94f3bf4be6a74675e8d54f7a70c#00c8ea71b7cfe94f3bf4be6a74675e8d54f7a70c"
+source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=2f187f1640a2b556daf68497be4bd62bb41f04cf#2f187f1640a2b556daf68497be4bd62bb41f04cf"
 dependencies = [
  "anyhow",
  "libc",
@@ -1027,7 +1027,7 @@ dependencies = [
 [[package]]
 name = "jankurai-proofmark"
 version = "0.8.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?tag=ci-00c8ea71b7cfe94f3bf4be6a74675e8d54f7a70c#00c8ea71b7cfe94f3bf4be6a74675e8d54f7a70c"
+source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=2f187f1640a2b556daf68497be4bd62bb41f04cf#2f187f1640a2b556daf68497be4bd62bb41f04cf"
 dependencies = [
  "anyhow",
  "jankurai-proofbind",
