@@ -59,3 +59,49 @@ fn full_audit_routes_forge_repository_findings_at_the_declaration() {
         .collect();
     assert!(stray.is_empty(), "{stray:?}");
 }
+
+// A declared lane that does not resolve is named in a soft finding routed at
+// the declaration; a resolved lane draws none.
+#[test]
+fn unresolved_lane_is_reported_at_the_declaration() {
+    let unresolved = tempfile::tempdir().unwrap();
+    for (path, contents) in [
+        (
+            "Cargo.toml",
+            "[package]\nname = \"widgetworks-ledger\"\nversion = \"0.1.0\"\n",
+        ),
+        ("src/lib.rs", "pub fn balance() -> i64 {\n    0\n}\n"),
+        (".jeryu/ci.toml", DECLARATION),
+        ("Justfile", "fast:\n    cargo check\n"),
+    ] {
+        write(unresolved.path(), path, contents);
+    }
+    let report = jankurai::audit::run_audit(unresolved.path(), &[]).unwrap();
+    let finding = report
+        .findings
+        .iter()
+        .find(|finding| finding.problem.contains("declared CI lane `required`"))
+        .expect("unresolved-lane finding");
+    assert_eq!(finding.path, ".jeryu/ci.toml");
+    assert_eq!(finding.severity, "low");
+    assert_eq!(finding.hardness, "soft");
+
+    let resolved = tempfile::tempdir().unwrap();
+    for (path, contents) in [
+        (
+            "Cargo.toml",
+            "[package]\nname = \"widgetworks-ledger\"\nversion = \"0.1.0\"\n",
+        ),
+        ("src/lib.rs", "pub fn balance() -> i64 {\n    0\n}\n"),
+        (".jeryu/ci.toml", DECLARATION),
+        ("Justfile", THIN_JUSTFILE),
+        ("scripts/gate.sh", EMPTY_GATE),
+    ] {
+        write(resolved.path(), path, contents);
+    }
+    let report = jankurai::audit::run_audit(resolved.path(), &[]).unwrap();
+    assert!(!report
+        .findings
+        .iter()
+        .any(|finding| finding.problem.contains("does not resolve")));
+}

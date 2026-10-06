@@ -7,8 +7,31 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-10-06
+
+1.7.3 carries the governed split.6 scoring (provider-aware CI credit), except
+where the owner chose 1.7 behaviour (an omitted `fail_on` means critical+high,
+and conformance blockers block).
+
+### Added
+
+- A lane declared in `.jeryu/ci.toml` that resolves to no repository content
+  (no `just` recipe, `make` target, script or package.json script) is reported
+  as a soft (`low`) finding at `.jeryu/ci.toml` naming the lane, as split.6
+  does. Such a lane already earned no credit; it used to be dropped silently.
+
 ### Changed
 
+- Public package version and `AUDITOR_VERSION` are `1.7.3`. Standard `0.9.0`
+  and schema `1.9.0` are unchanged.
+- The kernel pin is `33b389305262eead003074ea8c523e8c9e3c43f6` and the
+  analyzers pin is `a03d7260d1f8a5c96a998708bd50e501680166e7`, the same
+  revisions `family.lock` names. They carry the split.6 provider-aware CI
+  credit (proof CI presence, speed cache hint and security workflow lint read
+  the resolved `.jeryu/ci.toml` lane; npm/pnpm/yarn lanes resolve through
+  package.json scripts) and the HLT-031 fix that stops reading prose `as` in
+  comments as a TypeScript cast.
+- `docs/rule-catalog.md` is regenerated for auditor `1.7.3`.
 - The bundled workspace-boundary template says "forge remote and merge-request
   work" instead of naming this site's local GitLab and `glab`, and a new
   `init_golden` test rejects any bundled template body carrying a host, home

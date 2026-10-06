@@ -725,6 +725,20 @@ fn build_findings(
             None,
         );
     }
+    // A declared lane that resolves to no repository content earns nothing, and
+    // used to be dropped silently. Name it so the declaration can be fixed.
+    for unresolved in ci_provider::unresolved_lane_findings(&ctx.all_files) {
+        b.add(
+            "low",
+            "audit",
+            ci_provider::JERYU_DECLARATION_PATH,
+            &unresolved.problem,
+            &unresolved.fix,
+            unresolved.evidence,
+            None,
+            None,
+        );
+    }
 
     for hit in scan::manifest_parse_findings(ctx) {
         b.add(
