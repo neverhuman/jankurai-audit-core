@@ -6,7 +6,7 @@ resolver = "2"
 
 # Keep one qualified kernel identity across the selected component graph.
 [patch."https://github.com/neverhuman/jankurai-tools-kernel.git"]
-jankurai-audit-kernel = { git = "https://www.github.com/neverhuman/jankurai-tools-kernel.git", rev = "33b389305262eead003074ea8c523e8c9e3c43f6" }
+jankurai-audit-kernel = { git = "https://www.github.com/neverhuman/jankurai-tools-kernel.git", rev = "e66b94c1f0c7ceeef85a0dd206d072b19e80d832" }
 
 [patch."https://github.com/neverhuman/jankurai-tools-dedup.git"]
 jankurai-audit-dedup = { git = "https://www.github.com/neverhuman/jankurai-tools-dedup.git", rev = "602b608c59690020eb66a2069f67d33a75b481f1" }

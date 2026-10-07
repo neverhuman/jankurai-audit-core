@@ -18,9 +18,9 @@ cargo_metadata = "0.19"
 globset = "0.4"
 ignore = "0.4"
 jsonschema = { version = "=0.55.1", default-features = false, features = ["idna"] }
-jankurai-audit-analyzers = { git = "https://github.com/neverhuman/jankurai-tools-analyzers.git", rev = "bbd7db9df39bebd9706252719b65261b197bbc08", package = "jankurai-audit-analyzers", version = "0.1.0" }
+jankurai-audit-analyzers = { git = "https://github.com/neverhuman/jankurai-tools-analyzers.git", rev = "8f44aeb385011eeee0601db18cbc644f1913e392", package = "jankurai-audit-analyzers", version = "0.1.0" }
 jankurai-audit-dedup = { git = "https://github.com/neverhuman/jankurai-tools-dedup.git", tag = "ci-602b608c59690020eb66a2069f67d33a75b481f1", package = "jankurai-audit-dedup", version = "0.1.0" }
-jankurai-audit-kernel = { git = "https://github.com/neverhuman/jankurai-tools-kernel.git", rev = "33b389305262eead003074ea8c523e8c9e3c43f6", package = "jankurai-audit-kernel", version = "0.1.0" }
+jankurai-audit-kernel = { git = "https://github.com/neverhuman/jankurai-tools-kernel.git", rev = "e66b94c1f0c7ceeef85a0dd206d072b19e80d832", package = "jankurai-audit-kernel", version = "0.1.0" }
 jankurai-fleet = { git = "https://github.com/neverhuman/jankurai-tools-fleet.git", tag = "ci-668532cd06f87aec6b677ab061405e51871e57b8", package = "jankurai-fleet", version = "0.1.0" }
 jankurai-guard = { git = "https://github.com/neverhuman/jankurai-tools-guard.git", tag = "ci-ac11dec26907b986c62b1112fc6e781e1e2894c3", package = "jankurai-guard", version = "0.1.0", default-features = false }
 jankurai-proofbind = { git = "https://github.com/neverhuman/jankurai-tools-proof.git", rev = "2f187f1640a2b556daf68497be4bd62bb41f04cf", package = "jankurai-proofbind", version = "0.8.0" }
