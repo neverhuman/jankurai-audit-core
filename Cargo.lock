@@ -914,7 +914,7 @@ dependencies = [
 [[package]]
 name = "jankurai-audit-analyzers"
 version = "0.1.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-analyzers.git?rev=ff8a5e037619b8736fb6ce6a3f674d56181733da#ff8a5e037619b8736fb6ce6a3f674d56181733da"
+source = "git+https://github.com/neverhuman/jankurai-tools-analyzers.git?rev=41b273358894136d78627758453c5ee9b47c5f12#41b273358894136d78627758453c5ee9b47c5f12"
 dependencies = [
  "anyhow",
  "globset",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "jankurai-audit-kernel"
 version = "0.1.0"
-source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=cffceeef3a2e10b9de5e593533a64f5223d21edb#cffceeef3a2e10b9de5e593533a64f5223d21edb"
+source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=3051b412d86cd340d90408e5527ede2bf977abca#3051b412d86cd340d90408e5527ede2bf977abca"
 dependencies = [
  "aho-corasick",
  "anyhow",
