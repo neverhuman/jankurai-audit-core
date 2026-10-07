@@ -31,16 +31,21 @@ and conformance blockers block).
   required input (proof `2f187f1`, now pinned by `rev`).
 - `HLT-022-AUTHZ-ISOLATION-GAP` matches its terms (`owner_id`, `tenant_id`,
   `org_id`, `rls`, `admin`, ...) as whole identifier tokens instead of
-  substrings, so `rls` inside `urls` or `cdpUrlSetting` no longer applies the
-  authz cap (kernel `e66b94c`). `RLS`, `enable_rls`, `tenantId`, `isAdmin`,
-  `ROW LEVEL SECURITY` and SQL `CREATE POLICY ... USING (...)` still match.
+  substrings, so `rls` inside `urls` or `cdpUrlSetting` is no longer a surface
+  (kernel `cffceee`). `RLS`, `enable_rls`, `tenantId`, `isAdmin`,
+  `ROW LEVEL SECURITY` and SQL `CREATE POLICY ... USING (...)` still match. The
+  negative proof that clears it uses the same tokens, so `urls` in a test is
+  not `rls` proof. HLT-022 has no `jankurai:allow` opt-out.
+- A `jankurai:allow ... expires=YYYY-MM-DD` comment suppresses a finding only
+  until its expiry date (UTC). An expired, missing or malformed expiry no
+  longer suppresses anything (kernel `cffceee`).
 
 ### Changed
 
 - Public package version and `AUDITOR_VERSION` are `1.7.3`. Standard `0.9.0`
   and schema `1.9.0` are unchanged.
-- The kernel pin is `e66b94c1f0c7ceeef85a0dd206d072b19e80d832` and the
-  analyzers pin is `8f44aeb385011eeee0601db18cbc644f1913e392`, the same
+- The kernel pin is `cffceeef3a2e10b9de5e593533a64f5223d21edb` and the
+  analyzers pin is `ff8a5e037619b8736fb6ce6a3f674d56181733da`, the same
   revisions `family.lock` names. They carry the split.6 provider-aware CI
   credit (proof CI presence, speed cache hint and security workflow lint read
   the resolved `.jeryu/ci.toml` lane; npm/pnpm/yarn lanes resolve through

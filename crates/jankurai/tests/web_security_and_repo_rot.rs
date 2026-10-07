@@ -367,7 +367,7 @@ fn repo_rot_allow_comment_suppresses_path_detector() {
     write_base_repo(repo.path());
     write(
         &repo.path().join("src/payment_old.ts"),
-        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window expires=2026-12-31\nexport const x = 1;\n",
+        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window expires=2099-12-31\nexport const x = 1;\n",
     );
 
     let report = run(repo.path());
