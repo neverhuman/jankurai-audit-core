@@ -1,7 +1,7 @@
 # Release process
 
 This document is the release control surface for jankurai-core. It covers the
-version source, the changelog, the release automation, integrity and SBOM
+version source, the release notes, the release automation, integrity and SBOM
 evidence, and rollback. Launch gates require every section below to be backed by
 a real artifact or command.
 
@@ -13,11 +13,13 @@ release tag MUST match `VERSION`. Tags follow the family pattern
 `jankurai-core-v<MAJOR.MINOR.PATCH>-split.<N>` as described in
 [`SPLIT.md`](../SPLIT.md).
 
-## Changelog
+## Release notes
 
-Every release records its user-visible changes in
-[`CHANGELOG.md`](../CHANGELOG.md) under a heading that matches the new `VERSION`.
-The `Unreleased` section is promoted to a dated version heading at tag time.
+Release notes are generated when the release is cut, from the commits since the
+previous release (their subjects and `Todo:` trailers). A change never adds a
+[`CHANGELOG.md`](../CHANGELOG.md) entry by hand. At tag time the generated notes
+are written under a heading that matches the new `VERSION`, and the `Unreleased`
+section is rolled up into it.
 
 ## Release automation
 
@@ -26,8 +28,9 @@ forge gate. This repository publishes no binaries: the hub
 (`root/jankurai`) builds and key-signs the release binaries on our servers from
 the tagged family revisions (see the hub's `docs/release.md`).
 
-1. Bump [`VERSION`](../VERSION) and promote the `Unreleased` section of
-   [`CHANGELOG.md`](../CHANGELOG.md).
+1. Bump [`VERSION`](../VERSION) and write the generated notes for the commits
+   since the previous release into [`CHANGELOG.md`](../CHANGELOG.md), rolling the
+   `Unreleased` section up under the new version heading.
 2. Run the full gate locally: `bash scripts/ci-local.sh pr-ci` (the exact
    command the forge runs) or `just check`.
 3. Open a pull request with the version commit. The forge gate runs the
@@ -46,6 +49,7 @@ GitHub is a publishing mirror only and runs no workflows for this repository.
 The GitHub-era `ci-<sha>` tags are no longer published; the forge's
 exact-head `required` status and the evidence bundle record that a commit
 passed the gate.
+
 
 Release builds depend on immutable tags, never branches.
 
@@ -74,7 +78,8 @@ If a release regresses:
 1. Identify the last known-good tag (`jankurai-core-v<version>-split.<N>`).
 2. Re-point consumers at that immutable tag; tags are never moved or deleted.
 3. Open a revert commit that restores the previous `VERSION` and `CHANGELOG.md`
-   state, and add a `### Fixed` entry describing the rollback.
+   state; its commit subject describes the rollback and the next release's
+   generated notes pick it up.
 4. Re-run `just check` to confirm the rolled-back tree is green before
    re-publishing.
 
