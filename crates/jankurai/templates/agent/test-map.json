@@ -5,6 +5,58 @@
       "command": "just score",
       "purpose": "verify root routing remains visible to the audit"
     },
+    "CLAUDE.md": {
+      "command": "just score",
+      "purpose": "verify Claude adapter routing remains visible to the audit"
+    },
+    "GEMINI.md": {
+      "command": "just score",
+      "purpose": "verify Gemini adapter routing remains visible to the audit"
+    },
+    "Justfile": {
+      "command": "just check",
+      "purpose": "verify scaffolded local proof recipes remain runnable"
+    },
+    "Cargo.toml": {
+      "command": "just check",
+      "purpose": "verify Rust manifest changes through the local proof lane"
+    },
+    "Cargo.lock": {
+      "command": "just security",
+      "purpose": "verify Rust dependency changes through the security lane"
+    },
+    "package.json": {
+      "command": "just check",
+      "purpose": "verify package manifest changes through the local proof lane"
+    },
+    "package-lock.json": {
+      "command": "just security",
+      "purpose": "verify npm dependency changes through the security lane"
+    },
+    "pnpm-lock.yaml": {
+      "command": "just security",
+      "purpose": "verify pnpm dependency changes through the security lane"
+    },
+    "yarn.lock": {
+      "command": "just security",
+      "purpose": "verify Yarn dependency changes through the security lane"
+    },
+    "tsconfig.json": {
+      "command": "just check",
+      "purpose": "verify TypeScript compiler policy changes through the local proof lane"
+    },
+    "README-jankurai-scaffold.md": {
+      "command": "jankurai doctor --fail-on critical",
+      "purpose": "verify scaffold marker does not hide missing control-plane files"
+    },
+    ".gitignore": {
+      "command": "jankurai doctor --fail-on critical",
+      "purpose": "verify generated ignore configuration keeps audit evidence visible"
+    },
+    ".pre-commit-config.yaml": {
+      "command": "just score",
+      "purpose": "verify optional pre-commit wrapper routing remains visible"
+    },
     "apps/": {
       "command": "just fast",
       "purpose": "verify app surfaces remain routed through the audit"
@@ -57,10 +109,6 @@
       "command": "jankurai audit . --mode advisory --json target/jankurai/repo-score.json --md target/jankurai/repo-score.md",
       "purpose": "verify decision records remain visible to the audit"
     },
-    "README-jankurai-scaffold.md": {
-      "command": "jankurai doctor --fail-on critical",
-      "purpose": "verify scaffold marker does not hide missing control-plane files"
-    },
     "ops/": {
       "command": "just fast",
       "purpose": "verify ops surfaces remain visible to the audit"
@@ -100,6 +148,14 @@
     "schemas/coverage-*.schema.json": {
       "command": "just score",
       "purpose": "verify coverage evidence schemas and fixtures"
+    },
+    "src/": {
+      "command": "just check",
+      "purpose": "verify source changes through the local proof lane"
+    },
+    "tests/": {
+      "command": "just check",
+      "purpose": "verify test changes through the local proof lane"
     }
   }
 }

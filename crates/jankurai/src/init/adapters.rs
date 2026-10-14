@@ -219,7 +219,7 @@ pub fn verify_adapters(repo: &Path) -> Result<Vec<AdapterFailure>> {
     Ok(failures)
 }
 
-fn selected_adapter_paths(ide: &str) -> Vec<&'static str> {
+pub fn selected_adapter_paths(ide: &str) -> Vec<&'static str> {
     let mut paths = Vec::new();
     for token in ide.split(',').map(str::trim) {
         match token {

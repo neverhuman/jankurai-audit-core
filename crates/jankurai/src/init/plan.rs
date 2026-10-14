@@ -58,6 +58,7 @@ pub fn build_plan(
     } else {
         ensure_consumer_paths(profile_manifest, selected_level)
     };
+    let profile_manifest = apply_cli_surface_filters(repo, profile_manifest, ide, ci);
     let profile = profile_manifest.id.clone();
     let mut paths = profile_manifest.generated_paths.clone();
     paths.sort();
@@ -515,6 +516,112 @@ fn ensure_consumer_paths(
     manifest
 }
 
+fn apply_cli_surface_filters(
+    repo: &Path,
+    manifest: super::profiles::ProfileManifest,
+    ide: &str,
+    ci: &str,
+) -> super::profiles::ProfileManifest {
+    let manifest = filter_ide_adapters(manifest, ide);
+    let manifest = filter_ci_templates(manifest, ci);
+    prune_orphan_directory_agents(repo, manifest)
+}
+
+fn filter_ide_adapters(
+    mut manifest: super::profiles::ProfileManifest,
+    ide: &str,
+) -> super::profiles::ProfileManifest {
+    let selected = super::adapters::selected_adapter_paths(ide)
+        .into_iter()
+        .collect::<BTreeSet<_>>();
+    let adapter_paths = super::adapters::ADAPTER_PATHS
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
+    manifest
+        .generated_paths
+        .retain(|path| !adapter_paths.contains(path.as_str()) || selected.contains(path.as_str()));
+    manifest
+        .agent_adapters
+        .retain(|path| selected.contains(path.as_str()));
+    retain_merge_policies_for_generated(&mut manifest);
+    manifest
+}
+
+fn filter_ci_templates(
+    mut manifest: super::profiles::ProfileManifest,
+    ci: &str,
+) -> super::profiles::ProfileManifest {
+    if ci != "none" {
+        return manifest;
+    }
+    let ci_paths = manifest
+        .ci_templates
+        .iter()
+        .map(String::as_str)
+        .chain([".pre-commit-config.yaml"])
+        .collect::<BTreeSet<_>>();
+    manifest
+        .generated_paths
+        .retain(|path| !ci_paths.contains(path.as_str()));
+    manifest.ci_templates.clear();
+    retain_merge_policies_for_generated(&mut manifest);
+    manifest
+}
+
+fn prune_orphan_directory_agents(
+    repo: &Path,
+    mut manifest: super::profiles::ProfileManifest,
+) -> super::profiles::ProfileManifest {
+    let generated = manifest
+        .generated_paths
+        .iter()
+        .cloned()
+        .collect::<BTreeSet<String>>();
+    manifest.generated_paths.retain(|path| {
+        let Some(dir) = path.strip_suffix("/AGENTS.md") else {
+            return true;
+        };
+        repo.join(dir).is_dir()
+            || generated
+                .iter()
+                .any(|other| other.starts_with(&format!("{dir}/")) && other != path)
+    });
+    manifest.agent_adapters =
+        retain_existing_paths(manifest.agent_adapters, &manifest.generated_paths);
+    manifest.docs = retain_existing_paths(manifest.docs, &manifest.generated_paths);
+    manifest.security_controls =
+        retain_existing_paths(manifest.security_controls, &manifest.generated_paths);
+    manifest.ux_controls = retain_existing_paths(manifest.ux_controls, &manifest.generated_paths);
+    manifest.contract_system =
+        retain_existing_paths(manifest.contract_system, &manifest.generated_paths);
+    manifest.db_policy = retain_existing_paths(manifest.db_policy, &manifest.generated_paths);
+    retain_merge_policies_for_generated(&mut manifest);
+    manifest
+}
+
+fn retain_existing_paths(values: Vec<String>, generated_paths: &[String]) -> Vec<String> {
+    let generated = generated_paths
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    values
+        .into_iter()
+        .filter(|path| generated.contains(path.as_str()))
+        .collect()
+}
+
+fn retain_merge_policies_for_generated(manifest: &mut super::profiles::ProfileManifest) {
+    let generated = manifest
+        .generated_paths
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    manifest
+        .merge_policy
+        .retain(|path, _| generated.contains(path.as_str()));
+}
+
 fn filter_list(values: Vec<String>, allowed: &BTreeSet<&'static str>) -> Vec<String> {
     values
         .into_iter()
@@ -565,6 +672,7 @@ fn level_allowed_paths(level: InitLevel) -> BTreeSet<&'static str> {
             "agent/tool-adoption.toml",
             "agent/standard-version.toml",
             "agent/test-map.json",
+            "tools/security-lane.sh",
             "db/AGENTS.md",
             "ops/AGENTS.md",
             "python/ai-service/AGENTS.md",
