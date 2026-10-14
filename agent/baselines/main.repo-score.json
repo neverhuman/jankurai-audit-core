@@ -1,6 +1,6 @@
 {
-  "report_fingerprint": "sha256:581a1753f8f0ae2995fef03efa8d0c88f9558523ef6f2648e21953b2e374d5a8",
-  "input_fingerprint": "sha256:95312f08d2a2d19244801a8889623ce1981cbf7698b7a86d22d7b17a435a25a6",
+  "report_fingerprint": "sha256:e5b8afc72efe5b788aebac5a9a702a240df00fa991b1c07059d60687bd69ba42",
+  "input_fingerprint": "sha256:17b693518cac7a6b314106277e29248bc6124f1da106edde17aef2dfc5b1a1e2",
   "policy_fingerprint": "sha256:7eefa0b061882a6c63d41173b668f81cf4ff2177269c6b82047e5300dfc1d200",
   "manifest_fingerprints": {
     "owner_map": "sha256:4e4955eb7c4f9eb06525d340efbb3285cbf907533d4cc8333e1ca84fbf64b37b",
@@ -11,7 +11,7 @@
     "standard_version": "sha256:b68cc6f8754c0b7a939bbf58e7640c5b25a9d087136efe7afcee2276a750bdf4"
   },
   "dirty_worktree": false,
-  "generated_at": "1791307637",
+  "generated_at": "1791941800",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1791307637",
-  "started_at": "1791307637",
-  "elapsed_ms": 40607,
+  "run_id": "1791941800",
+  "started_at": "1791941800",
+  "elapsed_ms": 39187,
   "scope": {
     "mode": "full",
     "paths": []
@@ -54,7 +54,7 @@
     }
   },
   "git": {
-    "head": "132931503836a684b863b96239903482aceddb4b",
+    "head": "b00ca97ea8f6ed667ea3b9dffc4fb11dccb05966",
     "base": null,
     "changed_files": 0,
     "mode": "full",
@@ -1047,7 +1047,7 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-10-06T17:26:38.085922266+00:00",
+    "generated_at": "2026-10-14T01:36:02.618500686+00:00",
     "repo": ".",
     "auditor_version": "1.7.3",
     "status": "review",
@@ -1085,7 +1085,7 @@
       ]
     },
     "summary": {
-      "files_scanned": 498,
+      "files_scanned": 499,
       "files_considered": 128,
       "active_files": 128,
       "exact_file_classes": 0,
@@ -1123,8 +1123,8 @@
           {
             "path": "crates/jankurai/src/audit/mod.rs",
             "language": "rust",
-            "start_line": 2007,
-            "end_line": 2020,
+            "start_line": 2021,
+            "end_line": 2034,
             "unit_name": "compare_manifest_fingerprint"
           },
           {
