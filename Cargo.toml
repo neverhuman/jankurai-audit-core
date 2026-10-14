@@ -5,6 +5,10 @@ members = [
 resolver = "2"
 
 # Keep one qualified kernel identity across the selected component graph.
+# The `www.github.com` host is deliberate: Cargo refuses a [patch] whose source
+# URL equals the URL it patches, so the same repository is named by its `www`
+# alias. Both name the same repository, and each patch must pin the same commit
+# as the dependency line in crates/jankurai/Cargo.toml.
 [patch."https://github.com/neverhuman/jankurai-tools-kernel.git"]
 jankurai-audit-kernel = { git = "https://www.github.com/neverhuman/jankurai-tools-kernel.git", rev = "cfa36a7cbb558f115d613f861b68df8a5cd89f80" }
 

@@ -417,3 +417,98 @@ fn strict_exits_nonzero_on_hard_findings_but_default_writes_artifacts() {
     assert!(!output.status.success());
     assert_eq!(audit["summary"]["hard_findings"], 1);
 }
+
+fn write_lcov(repo: &Path, body: &str) {
+    fs::create_dir_all(repo.join("coverage")).unwrap();
+    fs::write(repo.join("coverage/lcov.info"), body).unwrap();
+    write_config(repo, &lcov_config("required", "coverage/lcov.info", ""));
+}
+
+// Shipped in 1.7.3 (analyzers): complete cargo-llvm-cov 0.8.7 LCOV is accepted
+// although its declared LF/LH exceed its DA records. Metrics always come from
+// the DA records, never from the declared totals.
+#[test]
+fn cargo_llvm_cov_lcov_with_totals_above_its_records_is_accepted() {
+    let repo = tempdir().unwrap();
+    copy_fixture(
+        repo.path(),
+        "cargo_llvm_cov_0_8_7.info",
+        "coverage/lcov.info",
+    );
+    write_config(
+        repo.path(),
+        &lcov_config("required", "coverage/lcov.info", ""),
+    );
+
+    let (output, audit) = run_coverage(repo.path(), &[]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(audit["findings"].as_array().unwrap().is_empty(), "{audit}");
+    let source = &audit["sources"][0];
+    assert_eq!(source["status"], "pass", "{audit}");
+    assert_eq!(source["metrics"]["total_lines"], 31);
+    assert_eq!(source["metrics"]["covered_lines"], 30);
+}
+
+// An inflated declaration is accepted (it is not below the records) but buys
+// nothing: coverage is computed from the DA records alone.
+#[test]
+fn inflated_lcov_totals_do_not_inflate_measured_coverage() {
+    let repo = tempdir().unwrap();
+    write_lcov(
+        repo.path(),
+        "TN:\nSF:crates/demo/src/lib.rs\nDA:1,1\nDA:2,0\nLF:10000\nLH:10000\nend_of_record\n",
+    );
+
+    let (output, audit) = run_coverage(repo.path(), &[]);
+    assert!(output.status.success());
+    let metrics = &audit["sources"][0]["metrics"];
+    assert_eq!(metrics["total_lines"], 2, "{audit}");
+    assert_eq!(metrics["covered_lines"], 1, "{audit}");
+    assert_eq!(metrics["total_line_coverage"], 0.5, "{audit}");
+}
+
+// The rejections 1.7.3 keeps: declared totals below the captured records, LH
+// above LF, a record that declares lines but captured no DA (cut off), and a
+// missing end_of_record. Each is a hard parser finding.
+#[test]
+fn incomplete_or_inconsistent_lcov_is_still_rejected() {
+    for (label, body) in [
+        (
+            "LF below DA records",
+            "TN:\nSF:crates/demo/src/lib.rs\nDA:1,1\nDA:2,1\nDA:3,1\nLF:2\nLH:2\nend_of_record\n",
+        ),
+        (
+            "LH below covered DA records",
+            "TN:\nSF:crates/demo/src/lib.rs\nDA:1,1\nDA:2,1\nDA:3,1\nLF:3\nLH:1\nend_of_record\n",
+        ),
+        (
+            "LH above LF",
+            "TN:\nSF:crates/demo/src/lib.rs\nDA:1,1\nDA:2,1\nLF:2\nLH:3\nend_of_record\n",
+        ),
+        (
+            "LF without DA records",
+            "TN:\nSF:crates/demo/src/lib.rs\nLF:5\nLH:0\nend_of_record\n",
+        ),
+        (
+            "missing end_of_record",
+            "TN:\nSF:crates/demo/src/lib.rs\nDA:1,1\nLF:1\nLH:1\n",
+        ),
+    ] {
+        let repo = tempdir().unwrap();
+        write_lcov(repo.path(), body);
+        let (output, audit) = run_coverage(repo.path(), &[]);
+        assert!(output.status.success(), "{label}");
+        assert_eq!(audit["summary"]["hard_findings"], 1, "{label}: {audit}");
+        assert!(
+            audit["findings"][0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("could not be parsed"),
+            "{label}: {audit}"
+        );
+    }
+}

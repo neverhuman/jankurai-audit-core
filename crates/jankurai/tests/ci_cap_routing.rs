@@ -60,6 +60,10 @@ fn full_audit_routes_forge_repository_findings_at_the_declaration() {
     assert!(stray.is_empty(), "{stray:?}");
 }
 
+// Both halves of the test below match the finding by this one substring, so
+// the negative half can fire exactly when the positive half would.
+const UNRESOLVED_REQUIRED_LANE: &str = "declared CI lane `required`";
+
 // A declared lane that does not resolve is named in a soft finding routed at
 // the declaration; a resolved lane draws none.
 #[test]
@@ -80,9 +84,12 @@ fn unresolved_lane_is_reported_at_the_declaration() {
     let finding = report
         .findings
         .iter()
-        .find(|finding| finding.problem.contains("declared CI lane `required`"))
+        .find(|finding| finding.problem.contains(UNRESOLVED_REQUIRED_LANE))
         .expect("unresolved-lane finding");
     assert_eq!(finding.path, ".jeryu/ci.toml");
+    // The generic CI route falls back to the workflow directory when no
+    // declared lane resolves; this finding must not follow it there.
+    assert!(!unresolved.path().join(".github").exists());
     assert_eq!(finding.severity, "low");
     assert_eq!(finding.hardness, "soft");
 
@@ -103,5 +110,5 @@ fn unresolved_lane_is_reported_at_the_declaration() {
     assert!(!report
         .findings
         .iter()
-        .any(|finding| finding.problem.contains("does not resolve")));
+        .any(|finding| finding.problem.contains(UNRESOLVED_REQUIRED_LANE)));
 }

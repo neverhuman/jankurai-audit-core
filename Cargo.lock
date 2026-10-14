@@ -1015,7 +1015,7 @@ dependencies = [
 [[package]]
 name = "jankurai-proofbind"
 version = "0.8.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=2f187f1640a2b556daf68497be4bd62bb41f04cf#2f187f1640a2b556daf68497be4bd62bb41f04cf"
+source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=281bf4cae2a020c9ad5c49f472e1f01dd8c813db#281bf4cae2a020c9ad5c49f472e1f01dd8c813db"
 dependencies = [
  "anyhow",
  "libc",
@@ -1027,7 +1027,7 @@ dependencies = [
 [[package]]
 name = "jankurai-proofmark"
 version = "0.8.0"
-source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=2f187f1640a2b556daf68497be4bd62bb41f04cf#2f187f1640a2b556daf68497be4bd62bb41f04cf"
+source = "git+https://github.com/neverhuman/jankurai-tools-proof.git?rev=281bf4cae2a020c9ad5c49f472e1f01dd8c813db#281bf4cae2a020c9ad5c49f472e1f01dd8c813db"
 dependencies = [
  "anyhow",
  "jankurai-proofbind",

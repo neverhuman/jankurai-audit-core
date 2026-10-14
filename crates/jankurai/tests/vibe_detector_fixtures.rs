@@ -64,6 +64,64 @@ fn hlt022_authz_isolation_requires_negative_owner_tests() {
     assert!(findings_for(safe.path(), "HLT-022-AUTHZ-ISOLATION-GAP").is_empty());
 }
 
+// Shipped in 1.7.3 (kernel): HLT-022 matches its surface terms and its
+// clearing proof as whole identifier tokens. True positives still fire.
+#[test]
+fn hlt022_identifier_boundary_true_positives_still_fire() {
+    let tenant = tempdir().unwrap();
+    write(
+        &tenant.path().join("src/api.ts"),
+        "export function readInvoice(tenant_id: string) { return db.invoice.findMany({ where: { tenant_id } }); }\n",
+    );
+    assert_finding(
+        tenant.path(),
+        "HLT-022-AUTHZ-ISOLATION-GAP",
+        "src/api.ts",
+        "tenant_id",
+        "security",
+    );
+
+    // A row-security policy in an application .sql file is a surface.
+    let policy = tempdir().unwrap();
+    write(
+        &policy.path().join("app/sql/policies.sql"),
+        "-- invoices are scoped per account\nCREATE POLICY invoice_access ON invoices\n  USING (account = current_setting('app.account'));\n",
+    );
+    let findings = findings_for(policy.path(), "HLT-022-AUTHZ-ISOLATION-GAP");
+    assert_eq!(findings.len(), 1, "{findings:?}");
+    assert_eq!(findings[0].path, "app/sql/policies.sql");
+    assert_eq!(findings[0].category, "security");
+}
+
+// `rls` inside `urls` (and camelCase `cdpUrls`) is not a surface, and `urls` in
+// a test is not proof that clears a real finding.
+#[test]
+fn hlt022_identifier_boundary_urls_is_neither_surface_nor_proof() {
+    let urls = tempdir().unwrap();
+    write(
+        &urls.path().join("src/links.ts"),
+        "export const docs_urls = ['https://example.com'];\nexport function cdpUrls(urls: string[]) { return urls.filter(Boolean); }\n",
+    );
+    assert!(findings_for(urls.path(), "HLT-022-AUTHZ-ISOLATION-GAP").is_empty());
+
+    let risky = tempdir().unwrap();
+    write(
+        &risky.path().join("src/api.ts"),
+        "export function readInvoice(owner_id: string) { return db.invoice.findMany({ where: { owner_id } }); }\n",
+    );
+    write(
+        &risky.path().join("tests/links_test.rs"),
+        "#[test]\nfn check_urls() { let urls: Vec<&str> = vec![]; assert!(urls.is_empty()); }\n",
+    );
+    assert_finding(
+        risky.path(),
+        "HLT-022-AUTHZ-ISOLATION-GAP",
+        "src/api.ts",
+        "owner_id",
+        "security",
+    );
+}
+
 #[test]
 fn hlt023_input_boundary_flags_unsafe_sinks_but_not_allowlisted_paths() {
     let risky = tempdir().unwrap();

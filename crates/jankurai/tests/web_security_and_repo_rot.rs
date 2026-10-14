@@ -378,3 +378,28 @@ fn repo_rot_allow_comment_suppresses_path_detector() {
         .iter()
         .any(|cap| cap == "repo-rot-bad-behavior"));
 }
+
+// Shipped in 1.7.3 (kernel): an allow comment suppresses only while its expiry
+// is today (UTC) or later. Expired, missing and malformed expiries do not.
+#[test]
+fn repo_rot_allow_comment_with_expired_missing_or_malformed_expiry_does_not_suppress() {
+    for allow in [
+        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window expires=2020-01-01",
+        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window",
+        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window expires=never",
+        "// jankurai:allow repo-rot.path.fake-versioned-source reason=compat-window expires=2026-02-30",
+    ] {
+        let repo = tempdir().unwrap();
+        write_base_repo(repo.path());
+        write(
+            &repo.path().join("src/payment_old.ts"),
+            &format!("{allow}\nexport const x = 1;\n"),
+        );
+
+        let report = run(repo.path());
+        assert_detector(
+            &findings(&report, "HLT-040-REPO-ROT-BAD-BEHAVIOR"),
+            "repo-rot.path.fake-versioned-source",
+        );
+    }
+}

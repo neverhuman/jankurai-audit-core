@@ -20,6 +20,16 @@ and conformance blockers block).
   as a soft (`low`) finding at `.jeryu/ci.toml` naming the lane, as split.6
   does. Such a lane already earned no credit; it used to be dropped silently.
 
+### Upgrade notes
+
+- **Adopters with `low` in `fail_on` will now fail on unresolved lanes.** The
+  audit decision counts every finding whose severity is in
+  `agent/audit-policy.toml` `fail_on` as hard, so a repository that lists `low`
+  there and declares a `.jeryu/ci.toml` lane that resolves to nothing goes from
+  passing to failing on upgrade, with no change on its side. Fix the lane's
+  `command` (or remove the lane) to clear it. The default `fail_on`
+  (critical+high) is unaffected.
+
 ### Fixed
 
 - `jankurai coverage` accepts complete cargo-llvm-cov 0.8.7 LCOV, whose
@@ -27,8 +37,13 @@ and conformance blockers block).
   below the captured records, `LH` above `LF`, a record with `LF` but no `DA`,
   and a missing `end_of_record` are still rejected.
 - `jankurai proofbind` no longer fails with "required input missing" when the
-  change deletes a file: a path Git reports as deleted is a removal, not a
-  required input (proof `2f187f1`, now pinned by `rev`).
+  change deletes a file, and the deletion still binds obligations (proof
+  `281bf4c`, now pinned by `rev`). A path Git reports as deleted is classified
+  from its pre-image in Git, so deleting an authz module binds the same HLT-022
+  obligation editing it would, and every deleted path binds a `removal`
+  obligation, so a deletion-only change set never passes `--mode required` on
+  zero obligations. A path named with `--changed` that is missing is still a
+  required input.
 - `HLT-022-AUTHZ-ISOLATION-GAP` matches its terms (`owner_id`, `tenant_id`,
   `org_id`, `rls`, `admin`, ...) as whole identifier tokens instead of
   substrings, so `rls` inside `urls` or `cdpUrlSetting` is no longer a surface
@@ -39,6 +54,13 @@ and conformance blockers block).
 - A `jankurai:allow ... expires=YYYY-MM-DD` comment suppresses a finding only
   until its expiry date (UTC). An expired, missing or malformed expiry no
   longer suppresses anything (kernel `cfa36a7`).
+- In-repo smoke tests exercise these shipped behaviours through core's own
+  pipeline: the LCOV accept and reject rules against a real cargo-llvm-cov
+  0.8.7 sample (`coverage_audit_smoke`), the proofbind deletion semantics
+  through `jankurai proofbind verify` (`proofbind_proofmark_smoke`), the HLT-022
+  identifier boundary (`tenant_id` and an RLS policy fire; `urls` is neither a
+  surface nor proof; `vibe_detector_fixtures`), and allow-comment expiry
+  (`web_security_and_repo_rot`).
 
 ### Changed
 

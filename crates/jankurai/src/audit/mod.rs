@@ -727,11 +727,25 @@ fn build_findings(
     }
     // A declared lane that resolves to no repository content earns nothing, and
     // used to be dropped silently. Name it so the declaration can be fixed.
+    // Route it at the declaration that names the lane, when that file exists.
+    // `ci_route` is not that route here: the provider is jeryu only once a
+    // declared lane resolves, so with every lane unresolved it falls back to
+    // `.github/workflows`, a directory the repository need not have. Without
+    // the declaration file, fall back to `ci_route` like the other CI findings.
+    let declaration_route = if ctx
+        .all_files
+        .iter()
+        .any(|file| file.rel_path == ci_provider::JERYU_DECLARATION_PATH)
+    {
+        ci_provider::JERYU_DECLARATION_PATH
+    } else {
+        ci_route
+    };
     for unresolved in ci_provider::unresolved_lane_findings(&ctx.all_files) {
         b.add(
             "low",
             "audit",
-            ci_provider::JERYU_DECLARATION_PATH,
+            declaration_route,
             &unresolved.problem,
             &unresolved.fix,
             unresolved.evidence,

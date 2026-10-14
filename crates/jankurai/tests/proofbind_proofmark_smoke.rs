@@ -244,3 +244,184 @@ fn proofbind_required_mode_fails_when_any_obligation_is_missing() {
         "required mode should fail when any obligation is unresolved"
     );
 }
+
+fn git(repo: &std::path::Path, args: &[&str]) {
+    let output = Command::new("git")
+        .args([
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .current_dir(repo)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "git {args:?}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// A committed fixture with an authorization module and an ordinary module,
+/// with `base` naming the commit before the change under test.
+fn seed_committed(repo: &std::path::Path) {
+    seed_catalog(repo);
+    fs::create_dir_all(repo.join("src")).unwrap();
+    fs::write(
+        repo.join("src/auth.rs"),
+        "pub fn authorize(tenant_id: &str) -> bool { !tenant_id.is_empty() }\n",
+    )
+    .unwrap();
+    fs::write(repo.join("src/lib.rs"), "pub fn api() -> bool { true }\n").unwrap();
+    git(repo, &["init", "-q", "-b", "main"]);
+    git(repo, &["add", "-A"]);
+    git(repo, &["commit", "-q", "-m", "base"]);
+    git(repo, &["branch", "base"]);
+}
+
+fn proofbind_verify(repo: &std::path::Path, args: &[&str]) -> std::process::Output {
+    Command::new(binary_path())
+        .current_dir(repo)
+        .arg("proofbind")
+        .arg("verify")
+        .arg(repo)
+        .args(args)
+        .output()
+        .unwrap()
+}
+
+fn read_artifacts(repo: &std::path::Path) -> (serde_json::Value, serde_json::Value) {
+    let read = |name: &str| -> serde_json::Value {
+        serde_json::from_str(
+            &fs::read_to_string(repo.join("target/jankurai/proofbind").join(name)).unwrap(),
+        )
+        .unwrap()
+    };
+    let witness = read("surface-witness.json");
+    let obligations = read("obligations.json");
+    validation::validate_value(repo, ArtifactSchema::ProofBindWitness, &witness).unwrap();
+    validation::validate_value(repo, ArtifactSchema::ProofBindObligations, &obligations).unwrap();
+    (witness, obligations)
+}
+
+fn surface_keys(witness: &serde_json::Value, path: &str) -> Vec<String> {
+    witness["surfaces"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|surface| surface["path"] == path)
+        .map(|surface| {
+            format!(
+                "{}:{}",
+                surface["surface_type"].as_str().unwrap(),
+                surface["symbol"].as_str().unwrap()
+            )
+        })
+        .collect()
+}
+
+// Shipped in 1.7.3 (proof): a deletion-only change set is analyzable, and the
+// deleted path still binds obligations. It is classified from its pre-image
+// (so deleting an authz module binds HLT-022) and binds a removal obligation,
+// so Required mode cannot pass on zero obligations. Before 1.7.3 the same
+// change failed with "required input missing".
+#[test]
+fn proofbind_deletion_only_change_binds_obligations_and_fails_required_mode() {
+    let repo = tempdir().unwrap();
+    seed_committed(repo.path());
+    git(repo.path(), &["rm", "-q", "src/auth.rs"]);
+    git(repo.path(), &["commit", "-q", "-m", "remove auth"]);
+
+    let output = proofbind_verify(
+        repo.path(),
+        &["--changed-from", "base", "--mode", "required"],
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "a removal is never a free pass");
+    assert!(stderr.contains("missing obligation(s)"), "{stderr}");
+    assert!(!stderr.contains("required input missing"), "{stderr}");
+
+    let (witness, obligations) = read_artifacts(repo.path());
+    assert_eq!(witness["changed_paths"], serde_json::json!(["src/auth.rs"]));
+    let auth = surface_keys(&witness, "src/auth.rs");
+    assert!(
+        auth.contains(&"authz_boundary:authz".to_string()),
+        "{auth:?}"
+    );
+    assert!(
+        auth.contains(&"business_invariant:removal".to_string()),
+        "{auth:?}"
+    );
+    assert!(obligations["obligations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|obligation| obligation["path"] == "src/auth.rs"
+            && obligation["risk_tags"]
+                .as_array()
+                .unwrap()
+                .contains(&serde_json::json!("removal"))));
+    assert!(obligations["summary"]["total"].as_u64().unwrap() >= 2);
+    assert_eq!(
+        obligations["summary"]["missing"],
+        obligations["summary"]["total"]
+    );
+    assert_eq!(obligations["summary"]["verdict"], "block");
+}
+
+// A deletion next to an ordinary edit binds both.
+#[test]
+fn proofbind_deletion_alongside_an_edit_binds_both() {
+    let repo = tempdir().unwrap();
+    seed_committed(repo.path());
+    git(repo.path(), &["rm", "-q", "src/auth.rs"]);
+    fs::write(
+        repo.path().join("src/lib.rs"),
+        "pub fn api() -> bool { false }\n",
+    )
+    .unwrap();
+    git(
+        repo.path(),
+        &["commit", "-q", "-am", "remove auth, edit api"],
+    );
+
+    let output = proofbind_verify(repo.path(), &["--changed-from", "base"]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let (witness, _) = read_artifacts(repo.path());
+    assert!(surface_keys(&witness, "src/lib.rs").contains(&"rust_public_api:api".to_string()));
+    let auth = surface_keys(&witness, "src/auth.rs");
+    assert!(
+        auth.contains(&"authz_boundary:authz".to_string()),
+        "{auth:?}"
+    );
+    assert!(
+        auth.contains(&"business_invariant:removal".to_string()),
+        "{auth:?}"
+    );
+}
+
+// The typo guard: a path named with --changed carries no deletion status, so
+// a missing one is still a required input, deleted or misspelled.
+#[test]
+fn proofbind_explicit_missing_path_is_still_a_required_input() {
+    let repo = tempdir().unwrap();
+    seed_committed(repo.path());
+    git(repo.path(), &["rm", "-q", "src/auth.rs"]);
+    for path in ["src/auth.rs", "src/atuh.rs"] {
+        let output = proofbind_verify(repo.path(), &["--changed", path]);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(!output.status.success(), "{path}");
+        assert!(
+            stderr.contains(&format!("required input missing: {path}")),
+            "{stderr}"
+        );
+    }
+}
