@@ -1,21 +1,21 @@
 {
-  "report_fingerprint": "sha256:7b149820948b294c6adee68eda4de363ea56346ac324921c039ffe24473b74b4",
-  "input_fingerprint": "sha256:ee563c3af9c4b7f14bad079b21101472d178ee07faf53c00ef6373bf8cc22f50",
-  "policy_fingerprint": "sha256:a8f31262684d4ee13297ef6b035709776d0bf37058d1ed6cb3f440f7e349f58d",
+  "report_fingerprint": "sha256:e01109d57f063ffccfbca48421e462543098969d171f5515fa87fdc1b1900c04",
+  "input_fingerprint": "sha256:72f08012e9a4fa316daf031309d7b23b34a3c51b34e5198be0c82d896a27c228",
+  "policy_fingerprint": "sha256:fff1d18e42b90a59c992c1a57a2db3f371f30530786d5df6f6102a00280b2db9",
   "manifest_fingerprints": {
     "owner_map": "sha256:f5476efa16fd63eb0c52fef0917e654180b88c697c80cd245ec1972778f5e1ca",
     "test_map": "sha256:e23efecaf3993e2af906ef750cc7e43ca190a037e1fee76a98045587db0728d0",
     "generated_zones": "sha256:0a1e98fd93dec97d0146d9e1916e3a03cabede673959ef5c52fc76492cba2a36",
     "boundaries": "sha256:d3c49b1a3b22dce2ee579d733e9e16e98bd91c6017ab1a9842847fa25838f46e",
     "proof_lanes": "sha256:9a69fe6f7869eb70753818ce27d2a05f07763bb9a8001f5aacd1f4615afeb07e",
-    "standard_version": "sha256:8490e7c964ef239bc1d370c8adb9a4e2ae3e7f747c596f57b163f41b4bd3c087"
+    "standard_version": "sha256:8f44897a6674d188f3c4d8aa0f6e6deb6736193cfdc90ff6021d369586b8ff50"
   },
   "dirty_worktree": false,
-  "generated_at": "1791984952",
+  "generated_at": "1791996917",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
-  "auditor_version": "1.7.4",
+  "auditor_version": "1.7.5",
   "schema_version": "1.9.0",
   "paper_edition": "2026.05-ed8",
   "target_stack_id": "rust-ts-vite-react-postgres-bounded-python",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1791984952",
-  "started_at": "1791984952",
-  "elapsed_ms": 7031,
+  "run_id": "1791996917",
+  "started_at": "1791996917",
+  "elapsed_ms": 7030,
   "scope": {
     "mode": "full",
     "paths": []
@@ -54,7 +54,7 @@
     }
   },
   "git": {
-    "head": "a4fb3a3d53b7cb0c2eb62029f0d18522574db699",
+    "head": "52302855241e149ee26b3b6ab049d0f8607c72dc",
     "base": null,
     "changed_files": 0,
     "mode": "full",
@@ -73,7 +73,7 @@
     ],
     "mode": "standard",
     "standard_version": "0.9.0",
-    "auditor_version": "1.7.4",
+    "auditor_version": "1.7.5",
     "schema_version": "1.9.0",
     "paper_edition": "2026.05-ed8",
     "target_stack": "rust-ts-vite-react-postgres-bounded-python"
@@ -441,9 +441,12 @@
     "missing_categories": [],
     "evidence": {
       "accessibility": [
-        "agent/baselines/main.repo-score.json"
+        "agent/baselines/main.repo-score.json",
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
-      "api_mocks": [],
+      "api_mocks": [
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
+      ],
       "artifact_backed_proof": [
         "agent/JANKURAI_STANDARD.md",
         "agent/ux-qa.toml",
@@ -452,7 +455,8 @@
         "crates/jankurai/src/init/templates.rs"
       ],
       "design_tokens": [
-        "crates/jankurai/src/audit/mod.rs"
+        "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "geometry_runtime": [
         "agent/proof-lanes.toml",
@@ -462,9 +466,11 @@
         "schemas/ux-qa-policy.schema.json"
       ],
       "layout_stability": [
-        "crates/jankurai/src/audit/mod.rs"
+        "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "playwright_visual": [
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/full/crates/tuiwright/tests/smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/gap/crates/tuiwright/tests/smoke.rs"
       ],
@@ -473,10 +479,11 @@
         "agent/ux-qa.toml",
         "crates/jankurai/src/audit/mod.rs",
         "crates/jankurai/src/commands/context_pack.rs",
-        "schemas/ux-qa-policy.schema.json"
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "visual_review": [
-        "crates/jankurai/src/audit/mod.rs"
+        "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ]
     }
   },
@@ -1064,9 +1071,9 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-10-14T13:35:45.659075799+00:00",
+    "generated_at": "2026-10-14T16:55:10.653854859+00:00",
     "repo": ".",
-    "auditor_version": "1.7.4",
+    "auditor_version": "1.7.5",
     "status": "review",
     "policy": {
       "active_source_only": true,
@@ -1102,7 +1109,7 @@
       ]
     },
     "summary": {
-      "files_scanned": 498,
+      "files_scanned": 499,
       "files_considered": 128,
       "active_files": 128,
       "exact_file_classes": 0,
@@ -1140,8 +1147,8 @@
           {
             "path": "crates/jankurai/src/audit/mod.rs",
             "language": "rust",
-            "start_line": 2021,
-            "end_line": 2034,
+            "start_line": 2031,
+            "end_line": 2044,
             "unit_name": "compare_manifest_fingerprint"
           },
           {
