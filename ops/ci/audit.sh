@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Jankurai self-audit lane: writes the repo-score artifacts that CI uploads.
+# Jankurai self-audit lane: writes the repo-score artifacts that the forge gate
+# bundles (ops/ci/collect-evidence.sh).
 # The same lane runs locally via `just audit`.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"

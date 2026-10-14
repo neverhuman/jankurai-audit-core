@@ -53,6 +53,9 @@ if [[ -f package.json ]]; then
         npm audit --audit-level=high
 fi
 
+# This repository commits no workflow (GitHub is a publishing mirror and
+# scripts/forge-gate-test.sh rejects .github/workflows). If one is ever added,
+# both pinned linters run here and block the lane.
 if [[ -d .github/workflows ]]; then
     printf '[security] workflow hardening\n'
     run_step zizmor zizmor 'zizmor .github/workflows' false \

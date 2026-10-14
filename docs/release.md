@@ -21,21 +21,31 @@ The `Unreleased` section is promoted to a dated version heading at tag time.
 
 ## Release automation
 
-Releases are cut by CI, not by hand:
+A release of this repository is an immutable tag on a commit that passed the
+forge gate. This repository publishes no binaries: the hub
+(`root/jankurai`) builds and key-signs the release binaries on our servers from
+the tagged family revisions (see the hub's `docs/release.md`).
 
 1. Bump [`VERSION`](../VERSION) and promote the `Unreleased` section of
    [`CHANGELOG.md`](../CHANGELOG.md).
-2. Run the full local gate: `just check` (format, lint, fast lane, security,
-   self-audit).
-3. Push the version commit. Forge CI on our hosts runs the build, security,
-   and jankurai audit lanes (`ops/ci/`) and keeps the `repo-score` artifacts.
-4. Tag the release commit with `jankurai-core-v<version>-split.<N>`. The tag
-   mirror in [`.jeryu/repo.toml`](../.jeryu/repo.toml) publishes the immutable tag
-   to the public GitHub mirror.
+2. Run the full gate locally: `bash scripts/ci-local.sh pr-ci` (the exact
+   command the forge runs) or `just check`.
+3. Open a pull request with the version commit. The forge gate runs the
+   `required` lane declared in [`.jeryu/ci.toml`](../.jeryu/ci.toml),
+   [`ops/ci/pr-ci.sh`](../ops/ci/pr-ci.sh): format, lint, fast lane, security
+   (secrets, dependencies, SBOM, vulnerabilities), tool adoption and the
+   ratchet self-audit, then writes the evidence bundle
+   `target/jankurai/evidence/<commit>/` (artifacts, `MANIFEST.sha256` and a
+   `receipt.json` naming the commit, tree and gate result) on the gate host.
+4. After the merge, tag the release commit with
+   `jankurai-core-v<version>-split.<N>`. The tag mirror in
+   [`.jeryu/repo.toml`](../.jeryu/repo.toml) publishes the immutable tag to the
+   public GitHub mirror.
 
-GitHub is a publishing mirror only: CI runs on the forge and our hosts, and
-releases are built and signed on our servers. A separate change introduces
-key-based release signing.
+GitHub is a publishing mirror only and runs no workflows for this repository.
+The GitHub-era `ci-<sha>` tags are no longer published; the forge's
+exact-head `required` status and the evidence bundle record that a commit
+passed the gate.
 
 Release builds depend on immutable tags, never branches.
 
@@ -43,14 +53,19 @@ Release builds depend on immutable tags, never branches.
 
 - **Dependency integrity**: builds are reproducible because `Cargo.lock` is
   committed and every CI lane uses `--locked`.
-- **SBOM**: generate a CycloneDX software bill of materials from the locked
-  dependency graph with `cargo cyclonedx --format json` (run in CI alongside the
-  security job) and attach it to the release as `sbom.json`.
-- **Provenance**: the security job runs `gitleaks detect` for secret scanning and
-  `cargo audit` for advisory checks; the audit job publishes the signed
-  `repo-score` artifacts that prove the release passed the jankurai gate.
-- **Action pinning**: every third-party GitHub Action is pinned to a 40-character
-  commit SHA so the supply chain of the release pipeline itself is fixed.
+- **SBOM**: the security lane (`tools/security-lane.sh`, run by the forge gate)
+  writes a CycloneDX SBOM with `syft` to `target/jankurai/security/sbom.json`,
+  scans it with `grype --fail-on high`, and records the
+  `Cargo.lock` + SBOM digests in
+  `target/jankurai/security/provenance-inputs.sha256`.
+- **Provenance**: the same lane runs `gitleaks detect` for secret scanning and
+  `cargo audit` / `cargo deny` for advisories, bans and sources; the audit lane
+  writes the `repo-score` report and the digest of the exact auditor binary
+  that produced it. The evidence bundle keeps all of these per commit.
+- **Tool pinning**: the security tools and workflow linters are pinned in
+  [`ops/ci/lib.sh`](../ops/ci/lib.sh) and checked by `scripts/ci-doctor.sh`.
+  No GitHub Action is part of the release path: GitHub only receives mirrored
+  branches and tags.
 
 ## Rollback
 

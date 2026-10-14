@@ -7,12 +7,32 @@ The authoritative version string lives in [`VERSION`](VERSION).
 
 ## [Unreleased]
 
+### Changed
+
+- The forge `required` lane in `.jeryu/ci.toml` now runs `ops/ci/pr-ci.sh`:
+  the full quality gate (required, security, tool adoption, final ratchet
+  audit) that the GitHub workflow ran, instead of the narrower
+  `ops/ci/required.sh`. `ops/ci/collect-evidence.sh` then writes a per-commit
+  evidence bundle (artifacts, `MANIFEST.sha256`, `receipt.json`) on every run,
+  pass or fail, and fails a passing run whose evidence is incomplete.
+- `scripts/forge-gate-test.sh`, run by the required lane, replaces the
+  workflow aggregate test: it rejects any change to the lane declaration, a
+  `just required` recipe that would shadow `pr-ci.sh` on the forge, a dropped
+  or masked quality gate, and any committed `.github/workflows`.
+- The public-mirror tool bootstrap is now `ops/ci/install-security-tools.sh`,
+  the provisioning path for hosts outside the sealed tool cache. zizmor and
+  actionlint stay pinned and enabled, and `tools/security-lane.sh` runs them,
+  blocking, if a workflow ever appears; they are no longer required tools
+  because there is no workflow for them to lint.
+
 ### Removed
 
 - GitHub Actions workflows. GitHub is a publishing mirror only; CI and scoring
-  run on the forge and our hosts. The workflow-only aggregate test,
-  `ops/ci/aggregate.sh` and the public-mirror tool bootstrap went with them,
-  and zizmor/actionlint are no longer required security tools.
+  run on the forge (see above). The workflow-only aggregate and its test
+  (`ops/ci/aggregate.sh`, `scripts/ci-aggregate.test.mjs`) went with them.
+- `ops/ci/publish-ci-tag.sh` and the `ci-<sha>` tags it published from the
+  GitHub workflow. The forge's exact-head `required` status and the evidence
+  bundle now record that a commit passed the gate.
 
 ## [1.7.3] - 2026-10-06
 

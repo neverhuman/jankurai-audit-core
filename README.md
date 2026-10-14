@@ -29,8 +29,15 @@ just check
 ```
 
 The full command surface lives in the root [`Justfile`](Justfile). Continuous
-integration runs the same `ops/ci/` lanes on the forge and our own hosts.
-GitHub is a publishing mirror only; it runs no workflows for this repository.
+integration runs on the forge: [`.jeryu/ci.toml`](.jeryu/ci.toml) declares one
+`required` lane, [`ops/ci/pr-ci.sh`](ops/ci/pr-ci.sh), which runs the full
+quality gate (`required`, `security`, `tool-adoption`, `audit`) and bundles its
+evidence under `target/jankurai/evidence/<commit>/`. Run it locally with
+`bash scripts/ci-local.sh pr-ci`. GitHub is a publishing mirror only; it runs
+no workflows for this repository.
+
+`bash scripts/ci-doctor.sh` checks the pinned tools the lanes need, and
+`bash ops/ci/install-security-tools.sh` installs any that are missing.
 
 ## Layout
 

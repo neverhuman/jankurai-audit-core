@@ -91,7 +91,7 @@
     },
     ".jeryu/": {
       "command": "bash scripts/ci-local.sh required",
-      "purpose": "verify local Jeryu and GitHub mirror metadata"
+      "purpose": "verify the forge gate declaration, its contract test, and the GitHub mirror metadata"
     },
     "agent/": {
       "command": "bash scripts/ci-local.sh required",

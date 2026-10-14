@@ -4,10 +4,16 @@ enabled_tools = [
   "gitleaks",
   "cargo-audit",
   "cargo-deny",
+  "zizmor",
+  "actionlint",
   "syft",
   "grype"
 ]
 
+# zizmor and actionlint stay enabled and pinned (ops/ci/lib.sh) but are not
+# required: GitHub is a publishing mirror, this repository commits no workflow
+# (scripts/forge-gate-test.sh fails the required lane if one appears), and
+# tools/security-lane.sh runs both linters, blocking, whenever one does.
 required_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
 advisory_tools = []
 
@@ -15,16 +21,16 @@ advisory_tools = []
 fail_lane_on = "high"
 
 [profiles.local]
-enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
+enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "zizmor", "actionlint", "syft", "grype"]
 required_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
 advisory_tools = []
 
 [profiles.ci]
-enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
+enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "zizmor", "actionlint", "syft", "grype"]
 required_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
 advisory_tools = []
 
 [profiles.release]
-enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
+enabled_tools = ["gitleaks", "cargo-audit", "cargo-deny", "zizmor", "actionlint", "syft", "grype"]
 required_tools = ["gitleaks", "cargo-audit", "cargo-deny", "syft", "grype"]
 advisory_tools = []

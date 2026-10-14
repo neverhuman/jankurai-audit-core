@@ -11,8 +11,6 @@
     "VERSION": "workspace",
     "rust-toolchain.toml": "ops",
     ".jeryu/": "ops",
-    "action.yml": "ops",
-    "jankurai-installer.sh": "ops",
     "agent/": "agent",
     "ops/": "ops",
     "scripts/": "ops",

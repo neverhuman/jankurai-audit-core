@@ -7,6 +7,9 @@ cd "$REPO_ROOT"
 log "required lane: ci-local lane contract"
 bash scripts/ci-local-lanes-test.sh
 
+log "required lane: forge gate contract"
+bash scripts/forge-gate-test.sh
+
 log "required lane: locked metadata, format, lint, and mapped fast proof"
 cargo metadata --locked --offline --no-deps --format-version 1 >/dev/null
 cargo fmt --all --check

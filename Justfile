@@ -50,7 +50,7 @@ test:
 security:
     bash ops/ci/security.sh
 
-# Exact-source full self-audit lane: writes the repo-score artifacts CI uploads.
+# Exact-source full self-audit lane: writes the repo-score artifacts the forge gate bundles.
 audit:
     bash ops/ci/audit.sh
 

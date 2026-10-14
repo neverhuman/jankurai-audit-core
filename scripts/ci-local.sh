@@ -24,6 +24,7 @@ declare -A lane_script=(
   [all]="ops/ci/quality-gates.sh"
   [quality-gates]="ops/ci/quality-gates.sh"
   [tool-adoption]="ops/ci/tool-adoption.sh"
+  [pr-ci]="ops/ci/pr-ci.sh"
 )
 
 lanes() { printf '%s\n' "${!lane_script[@]}" | sort; }
