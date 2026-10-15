@@ -45,7 +45,7 @@ no workflows for this repository.
 | --- | --- |
 | `crates/jankurai` | Rust auditor crate (binary + library) |
 | `agent/` | machine-readable owner, test, boundary, and proof maps |
-| `docs/` | architecture, testing, boundaries, release, and exception docs |
+| `docs/` | architecture, testing, boundaries, release, and exception docs; `docs/adr/` holds decision records |
 | `ops/` | pinned CI script entrypoints |
 | `scripts/` | local CI and fusion helpers |
 | `schemas/` | JSON Schemas for the auditor's artifacts |
@@ -57,6 +57,7 @@ no workflows for this repository.
 - [Boundaries](docs/boundaries.md)
 - [Release process](docs/release.md)
 - [Agent exceptions and overrides](docs/exceptions.md)
+- [ADR 0001 — one `agent/jankurai.toml`](docs/adr/0001-single-agent-manifest.md) (proposed)
 
 ## Versioning
 
