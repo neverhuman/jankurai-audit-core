@@ -58,7 +58,9 @@ pub fn build_plan(
     } else {
         ensure_consumer_paths(profile_manifest, selected_level)
     };
-    let profile_manifest = apply_cli_surface_filters(repo, profile_manifest, ide, ci);
+    super::adapters::validate_ide(ide)?;
+    let profile_manifest =
+        apply_cli_surface_filters(repo, profile_manifest, selected_level, ide, ci);
     let profile = profile_manifest.id.clone();
     let mut paths = profile_manifest.generated_paths.clone();
     paths.sort();
@@ -519,11 +521,18 @@ fn ensure_consumer_paths(
 fn apply_cli_surface_filters(
     repo: &Path,
     manifest: super::profiles::ProfileManifest,
+    level: InitLevel,
     ide: &str,
     ci: &str,
 ) -> super::profiles::ProfileManifest {
     let manifest = filter_ide_adapters(manifest, ide);
     let manifest = filter_ci_templates(manifest, ci);
+    // `full` lays the reference profile out, so its cell guidance stays even
+    // where the directory does not exist yet. The narrower levels adopt an
+    // existing repo, where guidance for a directory it does not have is an orphan.
+    if level == InitLevel::Full {
+        return manifest;
+    }
     prune_orphan_directory_agents(repo, manifest)
 }
 
@@ -573,9 +582,12 @@ fn prune_orphan_directory_agents(
     repo: &Path,
     mut manifest: super::profiles::ProfileManifest,
 ) -> super::profiles::ProfileManifest {
-    let generated = manifest
+    // Decide from the paths that are not cell guidance, so the result does not
+    // depend on which AGENTS.md files the same pass removes.
+    let anchors = manifest
         .generated_paths
         .iter()
+        .filter(|path| !path.ends_with("AGENTS.md"))
         .cloned()
         .collect::<BTreeSet<String>>();
     manifest.generated_paths.retain(|path| {
@@ -583,9 +595,14 @@ fn prune_orphan_directory_agents(
             return true;
         };
         repo.join(dir).is_dir()
-            || generated
+            || anchors
                 .iter()
-                .any(|other| other.starts_with(&format!("{dir}/")) && other != path)
+                .any(|other| other.starts_with(&format!("{dir}/")))
+            // The audit counts `.github/` as the ops cell, so generated
+            // `.github/` files make ops applicable and its guidance required.
+            || (dir == "ops"
+                && (repo.join(".github").is_dir()
+                    || anchors.iter().any(|other| other.starts_with(".github/"))))
     });
     manifest.agent_adapters =
         retain_existing_paths(manifest.agent_adapters, &manifest.generated_paths);
@@ -672,7 +689,6 @@ fn level_allowed_paths(level: InitLevel) -> BTreeSet<&'static str> {
             "agent/tool-adoption.toml",
             "agent/standard-version.toml",
             "agent/test-map.json",
-            "tools/security-lane.sh",
             "db/AGENTS.md",
             "ops/AGENTS.md",
             "python/ai-service/AGENTS.md",

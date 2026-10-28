@@ -19,6 +19,20 @@ pub const SUPPORTED_IDES: &[&str] = &[
     "aider",
 ];
 
+/// Refuses an `--ide` list with a token no adapter knows, so a typo cannot
+/// silently produce a scaffold without the adapters that were asked for.
+pub fn validate_ide(ide: &str) -> Result<()> {
+    for token in ide.split(',').map(str::trim) {
+        if !matches!(token, "all" | "none") && !SUPPORTED_IDES.contains(&token) {
+            anyhow::bail!(
+                "unknown --ide `{token}`; expected all, none, or a comma list of {}",
+                SUPPORTED_IDES.join(", ")
+            );
+        }
+    }
+    Ok(())
+}
+
 pub fn canonical_pointer() -> &'static str {
     "Use `agent/JANKURAI_STANDARD.md` as the canonical jankurai standard."
 }
@@ -250,6 +264,8 @@ pub fn selected_adapter_paths(ide: &str) -> Vec<&'static str> {
                 paths.push(".agents/workflows/jankurai-repair-plan.md");
                 paths.push(".agents/workflows/jankurai-witness.md");
             }
+            // Aider reads the root AGENTS.md; it has no adapter file of its own.
+            "aider" | "none" => {}
             _ => {}
         }
     }

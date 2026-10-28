@@ -99,6 +99,10 @@ fn is_init_owned_path(path: &str) -> bool {
         || path.starts_with(".agents/")
         || path.starts_with(".claude/")
         || path.starts_with(".cursor/")
+        // Files under `.github/` (adapters, a generated workflow) are checked.
+        // The bare directory `.github/workflows` is where the audit reports a
+        // missing CI workflow, which `--ci none` asked for, so it is not a file
+        // init wrote.
         || (path.starts_with(".github/") && path != ".github/workflows")
         || path.starts_with("tools/security-lane.sh")
         || path.starts_with("tools/jankurai-hooks/")
@@ -341,7 +345,9 @@ fn init_level_score_adds_local_scoring_without_ci_or_full_scaffold() {
         "agent/standard-version.toml",
         "agent/tool-adoption.toml",
         "agent/test-map.json",
-        "tools/security-lane.sh",
+        // `--ide all` generates `.github/` adapters, which the audit counts as
+        // the ops cell, so ops keeps its guidance.
+        "ops/AGENTS.md",
     ] {
         assert!(paths.contains(&expected.to_string()), "missing {expected}");
     }
@@ -354,7 +360,6 @@ fn init_level_score_adds_local_scoring_without_ci_or_full_scaffold() {
         "crates/domain/AGENTS.md",
         "crates/workers/AGENTS.md",
         "db/AGENTS.md",
-        "ops/AGENTS.md",
         "python/ai-service/AGENTS.md",
     ] {
         assert!(
@@ -364,7 +369,8 @@ fn init_level_score_adds_local_scoring_without_ci_or_full_scaffold() {
     }
     assert!(!paths.contains(&".github/workflows/jankurai.yml".to_string()));
     assert!(!paths.contains(&"agent/security-policy.toml".to_string()));
-    assert!(paths.contains(&"tools/security-lane.sh".to_string()));
+    // The score Justfile has no security recipe, so it ships no security-lane stub.
+    assert!(!paths.contains(&"tools/security-lane.sh".to_string()));
     assert!(!paths.contains(&"tools/jankurai-hooks/pre-commit".to_string()));
     assert!(!paths.contains(&"tools/jankurai-hooks/prepare-commit-msg".to_string()));
     assert!(!paths.iter().any(|path| path.starts_with("docs/")));
@@ -384,7 +390,50 @@ fn init_level_score_adds_local_scoring_without_ci_or_full_scaffold() {
     assert!(!rust_api_paths.contains(&"apps/api/AGENTS.md".to_string()));
     assert!(!rust_api_paths.contains(&"contracts/AGENTS.md".to_string()));
     assert!(!rust_api_paths.contains(&"crates/domain/AGENTS.md".to_string()));
-    assert!(!rust_api_paths.contains(&"ops/AGENTS.md".to_string()));
+    assert!(rust_api_paths.contains(&"ops/AGENTS.md".to_string()));
+}
+
+#[test]
+fn init_refuses_an_unknown_ide_token() {
+    let dir = tempdir().unwrap();
+    for ide in ["Claude", "cursor,copilott", "vscode"] {
+        let mut args = dry_run_plan_args(dir.path().to_path_buf(), "rust-api", None);
+        args.ide = ide.into();
+        let error = init::run(args).unwrap_err().to_string();
+        assert!(error.contains("unknown --ide"), "{ide}: {error}");
+    }
+    for ide in ["all", "none", "aider", "claude,cursor"] {
+        let mut args = dry_run_plan_args(dir.path().to_path_buf(), "rust-api", None);
+        args.ide = ide.into();
+        init::run(args).unwrap();
+    }
+}
+
+#[test]
+fn init_full_keeps_cell_guidance_for_directories_it_lays_out() {
+    let dir = tempdir().unwrap();
+    let plan_path = dir.path().join("init-full.json");
+    let mut args = dry_run_plan_args(
+        dir.path().to_path_buf(),
+        "rust-api",
+        Some(plan_path.to_string_lossy().into_owned()),
+    );
+    args.ide = "none".into();
+    args.ci = "none".into();
+    init::run(args).unwrap();
+    let value: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(plan_path).unwrap()).unwrap();
+    let paths = plan_paths(&value);
+    for expected in [
+        "apps/api/AGENTS.md",
+        "contracts/AGENTS.md",
+        "crates/domain/AGENTS.md",
+    ] {
+        assert!(
+            paths.contains(&expected.to_string()),
+            "full init dropped {expected}"
+        );
+    }
 }
 
 #[test]
@@ -1119,20 +1168,31 @@ fn init_greenfield_apply_then_audit_and_doctor() {
 
     let report = audit::run_audit(dir.path(), &[]).unwrap();
     assert!(dir.path().join("contracts/README.md").exists());
-    assert!(!dir.path().join("apps/web/AGENTS.md").exists());
-    assert!(!dir.path().join("apps/api/AGENTS.md").exists());
+    assert!(dir.path().join("apps/web/AGENTS.md").exists());
+    assert!(dir.path().join("apps/api/AGENTS.md").exists());
     assert!(dir.path().join("contracts/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/domain/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/application/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/adapters/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/workers/AGENTS.md").exists());
+    assert!(dir.path().join("crates/domain/AGENTS.md").exists());
+    assert!(dir.path().join("crates/application/AGENTS.md").exists());
+    assert!(dir.path().join("crates/adapters/AGENTS.md").exists());
+    assert!(dir.path().join("crates/workers/AGENTS.md").exists());
     assert!(dir.path().join("db/AGENTS.md").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
-    assert!(!dir.path().join("python/ai-service/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("python/ai-service/AGENTS.md").exists());
     assert!(dir.path().join("tools/security-lane.sh").exists());
     assert!(dir.path().join("agent/tool-adoption.toml").exists());
     assert!(dir.path().join("db/README.md").exists());
-    for cell_id in ["contracts", "db"] {
+    for cell_id in [
+        "web",
+        "api",
+        "domain",
+        "application",
+        "adapters",
+        "workers",
+        "contracts",
+        "db",
+        "ops",
+        "python-ai",
+    ] {
         let cell = report
             .profile_structure
             .cells
@@ -1145,34 +1205,14 @@ fn init_greenfield_apply_then_audit_and_doctor() {
             "{cell_id} should have local guidance in the generated scaffold"
         );
     }
-    for cell_id in [
-        "web",
-        "api",
-        "domain",
-        "application",
-        "adapters",
-        "workers",
-        "python-ai",
-    ] {
-        let cell = report
-            .profile_structure
-            .cells
+    assert!(
+        report
+            .findings
             .iter()
-            .find(|cell| cell.id == cell_id)
-            .unwrap();
-        assert_eq!(
-            cell.status, "not_applicable",
-            "{cell_id} should not be scaffolded"
-        );
-    }
-    let ops = report
-        .profile_structure
-        .cells
-        .iter()
-        .find(|cell| cell.id == "ops")
-        .unwrap();
-    assert_eq!(ops.status, "noncanonical");
-    assert_eq!(ops.guidance_status, "missing");
+            .all(|finding| finding.rule_id.as_deref() != Some("HLT-038-REFERENCE-PROFILE-STRUCTURE-GAP")),
+        "generated scaffold with canonical cell guidance should not emit profile-structure findings"
+    );
+
     assert_audit_and_doctor(dir.path());
 }
 
@@ -1219,14 +1259,14 @@ fn init_greenfield_apply_rust_api_then_audit_and_doctor() {
     init::run(greenfield_apply_args(dir.path().to_path_buf(), "rust-api")).unwrap();
 
     assert!(dir.path().join("contracts/README.md").exists());
-    assert!(!dir.path().join("apps/api/AGENTS.md").exists());
+    assert!(dir.path().join("apps/api/AGENTS.md").exists());
     assert!(dir.path().join("contracts/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/domain/AGENTS.md").exists());
-    assert!(!dir.path().join("crates/application/AGENTS.md").exists());
+    assert!(dir.path().join("crates/domain/AGENTS.md").exists());
+    assert!(dir.path().join("crates/application/AGENTS.md").exists());
     assert!(dir.path().join("tools/security-lane.sh").exists());
     assert!(dir.path().join("db/README.md").exists());
     assert!(dir.path().join("db/AGENTS.md").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(
         !dir.path().join("agent/ux-qa.toml").exists(),
         "rust-api does not include UX QA"
@@ -1241,12 +1281,12 @@ fn init_greenfield_apply_react_web_then_audit_and_doctor() {
     init::run(greenfield_apply_args(dir.path().to_path_buf(), "react-web")).unwrap();
 
     assert!(dir.path().join("contracts/README.md").exists());
-    assert!(!dir.path().join("apps/web/AGENTS.md").exists());
+    assert!(dir.path().join("apps/web/AGENTS.md").exists());
     assert!(dir.path().join("contracts/AGENTS.md").exists());
     assert!(dir.path().join("tools/security-lane.sh").exists());
     assert!(dir.path().join("agent/tool-adoption.toml").exists());
     assert!(dir.path().join("agent/ux-qa.toml").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(
         !dir.path().join("db/README.md").exists(),
         "react-web does not include DB path"
@@ -1261,14 +1301,14 @@ fn init_greenfield_apply_b2b_saas_then_audit_and_doctor() {
     init::run(greenfield_apply_args(dir.path().to_path_buf(), "b2b-saas")).unwrap();
 
     assert!(dir.path().join("contracts/README.md").exists());
-    assert!(!dir.path().join("apps/web/AGENTS.md").exists());
-    assert!(!dir.path().join("apps/api/AGENTS.md").exists());
+    assert!(dir.path().join("apps/web/AGENTS.md").exists());
+    assert!(dir.path().join("apps/api/AGENTS.md").exists());
     assert!(dir.path().join("contracts/AGENTS.md").exists());
     assert!(dir.path().join("tools/security-lane.sh").exists());
     assert!(dir.path().join("agent/ux-qa.toml").exists());
     assert!(dir.path().join("db/README.md").exists());
     assert!(dir.path().join("db/AGENTS.md").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(
         dir.path().join("docs/auth/README.md").exists(),
         "b2b-saas includes auth docs"
@@ -1297,7 +1337,7 @@ fn init_greenfield_apply_ai_product_then_audit_and_doctor() {
     assert!(dir.path().join("python/ai-service/AGENTS.md").exists());
     assert!(dir.path().join("prompts/README.md").exists());
     assert!(dir.path().join("agent/tool-adoption.toml").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(
         !dir.path().join("agent/ux-qa.toml").exists(),
         "ai-product omits web UX controls by default"
@@ -1315,14 +1355,14 @@ fn init_greenfield_apply_regulated_saas_then_audit_and_doctor() {
     ))
     .unwrap();
 
-    assert!(!dir.path().join("apps/web/AGENTS.md").exists());
-    assert!(!dir.path().join("apps/api/AGENTS.md").exists());
+    assert!(dir.path().join("apps/web/AGENTS.md").exists());
+    assert!(dir.path().join("apps/api/AGENTS.md").exists());
     assert!(dir.path().join("contracts/AGENTS.md").exists());
     assert!(dir.path().join("db/AGENTS.md").exists());
     assert!(dir.path().join("docs/privacy/README.md").exists());
     assert!(dir.path().join("docs/compliance/README.md").exists());
     assert!(dir.path().join("agent/tool-adoption.toml").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(dir.path().join("agent/ux-qa.toml").exists());
 
     assert_audit_and_doctor(dir.path());
@@ -1340,7 +1380,7 @@ fn init_greenfield_apply_migration_target_then_audit_and_doctor() {
     assert!(dir.path().join("contracts/AGENTS.md").exists());
     assert!(dir.path().join("docs/migration/boundary-map.md").exists());
     assert!(dir.path().join("agent/tool-adoption.toml").exists());
-    assert!(!dir.path().join("ops/AGENTS.md").exists());
+    assert!(dir.path().join("ops/AGENTS.md").exists());
     assert!(
         !dir.path().join("db/README.md").exists(),
         "migration-target does not claim database ownership"
