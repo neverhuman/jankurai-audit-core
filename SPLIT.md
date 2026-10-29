@@ -19,7 +19,9 @@ Rust package and binary source for the jankurai auditor and merge control plane.
 ## Split Rules
 
 - Jeryu remains authoritative; GitHub is the public mirror.
-- Release builds depend on immutable GitHub tags, not branches.
+- Release builds depend on immutable tags, not branches. The kernel is pinned
+  to the authoritative forge at `https://git.jeryu.ai/git/root/jankurai-tools-kernel`;
+  the historical GitHub kernel repository is disabled. Other sources are unchanged.
 - Local development uses the hub `scripts/fuse.sh` output under `.fusion/`.
 - Committed manifests must not depend on sibling checkout paths.
 - Generated outputs are regenerated from their source contracts or build commands.
