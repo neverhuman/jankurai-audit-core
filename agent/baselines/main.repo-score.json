@@ -1,5 +1,5 @@
 {
-  "report_fingerprint": "sha256:a6e43b5b24eb6c643ce1f426869696f20d700bca152966189091a7ecf0e4d9bf",
+  "report_fingerprint": "sha256:367a98dab350319cf6d4b590329b43b5b245441b5cfeb38f1a33f5dd2333b9e9",
   "input_fingerprint": "sha256:798033f8082fe76b8f2b502da33eadf5dae6728919a156849c353ed1ecaa9aa1",
   "policy_fingerprint": "sha256:4cd32b701051a1c4a49d5f810b943078dcd222753cfed74658339e16bebbb2e2",
   "manifest_fingerprints": {
@@ -11,7 +11,7 @@
     "standard_version": "sha256:8f44897a6674d188f3c4d8aa0f6e6deb6736193cfdc90ff6021d369586b8ff50"
   },
   "dirty_worktree": false,
-  "generated_at": "1793249374",
+  "generated_at": "1793250611",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1793249374",
-  "started_at": "1793249374",
-  "elapsed_ms": 39528,
+  "run_id": "1793250611",
+  "started_at": "1793250611",
+  "elapsed_ms": 38352,
   "scope": {
     "mode": "full",
     "paths": []
@@ -314,12 +314,9 @@
         "web e2e lane present or no web surface",
         "rendered UX QA lane present or no web surface",
         "DOM geometry UX QA runtime found",
-        "Rust property/integration tests present or no Rust surface",
-        "proofbind artifact found: surfaces=5 missing=5 high_or_critical_missing=0 verdict=review"
+        "Rust property/integration tests present or no Rust surface"
       ],
-      "notes": [
-        "proofbind reports 5 unresolved obligation(s)"
-      ]
+      "notes": []
     },
     {
       "name": "Security and supply-chain posture",
@@ -1062,23 +1059,7 @@
       "cost-budget"
     ]
   },
-  "security_evidence": {
-    "artifact": {
-      "path": "target/jankurai/security/evidence.json",
-      "envelope_exit_code": 0,
-      "elapsed_ms": 4393,
-      "wrapper_strict": true,
-      "profile": "ci",
-      "commands_ran": 6,
-      "commands_skipped": 0,
-      "commands_failed": 0,
-      "required_commands_skipped": 0,
-      "required_commands_failed": 0,
-      "blocking_commands": [],
-      "generated_at": "1793249110",
-      "git_head": "0784c619a037360b336c6a2e10bced7aeb932981"
-    }
-  },
+  "security_evidence": {},
   "boundaries": {
     "artifact": {
       "path": "agent/boundaries.toml",
@@ -1096,7 +1077,7 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-10-29T04:48:56.043271588+00:00",
+    "generated_at": "2026-10-29T05:09:34.466949147+00:00",
     "repo": ".",
     "auditor_version": "1.7.6",
     "status": "review",
@@ -2710,7 +2691,7 @@
   "coverage_evidence": {
     "artifact": "target/jankurai/coverage/coverage-audit.json",
     "status": "missing",
-    "sources_total": 2,
+    "sources_total": 0,
     "sources_present": 0,
     "hard_findings": 0,
     "soft_findings": 0
