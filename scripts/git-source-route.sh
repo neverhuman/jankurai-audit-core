@@ -41,7 +41,7 @@ route_env() {
         "$n" "$base" "$n" "$host" "$owner"
       n=$((n + 1))
     done
-  done < <(locked_urls | sed -E "s#^https://(www\.)?github\.com/([^/]+)/.*#\2#" | sort -u)
+  done < <(locked_urls | sed -nE "s#^https://(www\.)?github\.com/([^/]+)/.*#\2#p" | sort -u)
   printf 'GIT_CONFIG_COUNT=%d\n' "$n"
 }
 

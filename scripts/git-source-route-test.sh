@@ -31,6 +31,17 @@ grep -q 'insteadOf' <<<"$out" || fail "rewrite keys missing"
 # dropped, so a `www.` pin and its plain twin name one mirror repository.
 export JANKURAI_GIT_MIRROR_BASE=https://mirror.invalid/g
 while read -r url; do
+  if [[ "$url" == https://git.jeryu.ai/git/root/jankurai-tools-kernel ]]; then
+    # The owner-selected kernel source is already authoritative. The GitHub
+    # mirror route must neither redirect it nor manufacture a mirror alias.
+    got="$(bash scripts/git-source-route.sh run -- git ls-remote --get-url "$url")"
+    [[ "$got" == "$url" ]] || fail "forge kernel source was rewritten: $got"
+    if bash scripts/git-source-route.sh mirror-url "$url" >/dev/null 2>&1; then
+      fail "forge kernel source was accepted as a GitHub mirror source"
+    fi
+    grep -q 'GIT_CONFIG_VALUE_.*git.jeryu.ai' <<<"$out" && fail "forge source leaked into GitHub rewrite owners"
+    continue
+  fi
   want="https://mirror.invalid/g/$(sed -E 's#^https://(www\.)?github\.com/[^/]+/##' <<<"$url")"
   got="$(bash scripts/git-source-route.sh mirror-url "$url")"
   [[ "$got" == "$want" ]] || fail "mirror-url $url gave $got, want $want"
