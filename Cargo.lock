@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "jankurai-audit-kernel"
 version = "0.1.0"
-source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=0291fc30e2ae3cad598f0106341be2557ee907b4#0291fc30e2ae3cad598f0106341be2557ee907b4"
+source = "git+https://www.github.com/neverhuman/jankurai-tools-kernel.git?rev=bc246e57a7dd784589c250ff7d7237ce7691864e#bc246e57a7dd784589c250ff7d7237ce7691864e"
 dependencies = [
  "aho-corasick",
  "anyhow",

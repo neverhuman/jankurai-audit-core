@@ -10,7 +10,7 @@ resolver = "2"
 # alias. Both name the same repository, and each patch must pin the same commit
 # as the dependency line in crates/jankurai/Cargo.toml.
 [patch."https://github.com/neverhuman/jankurai-tools-kernel.git"]
-jankurai-audit-kernel = { git = "https://www.github.com/neverhuman/jankurai-tools-kernel.git", rev = "0291fc30e2ae3cad598f0106341be2557ee907b4" }
+jankurai-audit-kernel = { git = "https://www.github.com/neverhuman/jankurai-tools-kernel.git", rev = "bc246e57a7dd784589c250ff7d7237ce7691864e" }
 
 [patch."https://github.com/neverhuman/jankurai-tools-dedup.git"]
 jankurai-audit-dedup = { git = "https://www.github.com/neverhuman/jankurai-tools-dedup.git", rev = "602b608c59690020eb66a2069f67d33a75b481f1" }

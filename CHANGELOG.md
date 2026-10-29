@@ -30,6 +30,9 @@ Todo: 20261014-134444-01c8bb
 - fix: retain Jeryu CI evidence in scoped audit inventories
 Todo: 20261029-024627-9a0768
 
+- Retain changed-fast evidence and suppress inherited external diffs
+Todo: 20260930-141629-d06f43
+
 ## [1.7.5] - 2026-10-14
 
 `jankurai --version` reports `1.7.5`; `VERSION` is `1.7.5-split.1`. Standard
