@@ -1,7 +1,7 @@
 {
-  "report_fingerprint": "sha256:bacfe511569c5a358796e560a3b7c0107b7c7ff02638f5d51e6a49ab7271d661",
-  "input_fingerprint": "sha256:b4c477ea53988b2055e6a6ee5ead1f4fd0733790390654f4ab98d9a99bc82878",
-  "policy_fingerprint": "sha256:4cd32b701051a1c4a49d5f810b943078dcd222753cfed74658339e16bebbb2e2",
+  "report_fingerprint": "sha256:e01109d57f063ffccfbca48421e462543098969d171f5515fa87fdc1b1900c04",
+  "input_fingerprint": "sha256:72f08012e9a4fa316daf031309d7b23b34a3c51b34e5198be0c82d896a27c228",
+  "policy_fingerprint": "sha256:fff1d18e42b90a59c992c1a57a2db3f371f30530786d5df6f6102a00280b2db9",
   "manifest_fingerprints": {
     "owner_map": "sha256:f5476efa16fd63eb0c52fef0917e654180b88c697c80cd245ec1972778f5e1ca",
     "test_map": "sha256:e23efecaf3993e2af906ef750cc7e43ca190a037e1fee76a98045587db0728d0",
@@ -11,11 +11,11 @@
     "standard_version": "sha256:8f44897a6674d188f3c4d8aa0f6e6deb6736193cfdc90ff6021d369586b8ff50"
   },
   "dirty_worktree": false,
-  "generated_at": "1793255937",
+  "generated_at": "1791996917",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
-  "auditor_version": "1.7.6",
+  "auditor_version": "1.7.5",
   "schema_version": "1.9.0",
   "paper_edition": "2026.05-ed8",
   "target_stack_id": "rust-ts-vite-react-postgres-bounded-python",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1793255937",
-  "started_at": "1793255937",
-  "elapsed_ms": 41606,
+  "run_id": "1791996917",
+  "started_at": "1791996917",
+  "elapsed_ms": 7030,
   "scope": {
     "mode": "full",
     "paths": []
@@ -54,7 +54,7 @@
     }
   },
   "git": {
-    "head": "78010ed7d503c2079917afc7e6c16942c0b23a92",
+    "head": "52302855241e149ee26b3b6ab049d0f8607c72dc",
     "base": null,
     "changed_files": 0,
     "mode": "full",
@@ -73,7 +73,7 @@
     ],
     "mode": "standard",
     "standard_version": "0.9.0",
-    "auditor_version": "1.7.6",
+    "auditor_version": "1.7.5",
     "schema_version": "1.9.0",
     "paper_edition": "2026.05-ed8",
     "target_stack": "rust-ts-vite-react-postgres-bounded-python"
@@ -442,11 +442,9 @@
     "evidence": {
       "accessibility": [
         "agent/baselines/main.repo-score.json",
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "api_mocks": [
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "artifact_backed_proof": [
@@ -458,7 +456,6 @@
       ],
       "design_tokens": [
         "crates/jankurai/src/audit/mod.rs",
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "geometry_runtime": [
@@ -470,11 +467,9 @@
       ],
       "layout_stability": [
         "crates/jankurai/src/audit/mod.rs",
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "playwright_visual": [
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/full/crates/tuiwright/tests/smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/gap/crates/tuiwright/tests/smoke.rs"
@@ -484,11 +479,10 @@
         "agent/ux-qa.toml",
         "crates/jankurai/src/audit/mod.rs",
         "crates/jankurai/src/commands/context_pack.rs",
-        "crates/jankurai/tests/audit_smoke.rs"
+        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "visual_review": [
         "crates/jankurai/src/audit/mod.rs",
-        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ]
     }
@@ -1077,9 +1071,9 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-10-29T06:38:17.498649804+00:00",
+    "generated_at": "2026-10-14T16:55:10.653854859+00:00",
     "repo": ".",
-    "auditor_version": "1.7.6",
+    "auditor_version": "1.7.5",
     "status": "review",
     "policy": {
       "active_source_only": true,
@@ -1115,7 +1109,7 @@
       ]
     },
     "summary": {
-      "files_scanned": 502,
+      "files_scanned": 499,
       "files_considered": 128,
       "active_files": 128,
       "exact_file_classes": 0,
@@ -1153,8 +1147,8 @@
           {
             "path": "crates/jankurai/src/audit/mod.rs",
             "language": "rust",
-            "start_line": 2041,
-            "end_line": 2054,
+            "start_line": 2031,
+            "end_line": 2044,
             "unit_name": "compare_manifest_fingerprint"
           },
           {
@@ -1618,15 +1612,15 @@
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 375,
-            "end_line": 378,
+            "start_line": 372,
+            "end_line": 375,
             "unit_name": "filter_profile_manifest"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 490,
-            "end_line": 493,
+            "start_line": 487,
+            "end_line": 490,
             "unit_name": "ensure_consumer_paths"
           }
         ]
@@ -1746,8 +1740,8 @@
           {
             "path": "crates/jankurai/src/init/adapters.rs",
             "language": "rust",
-            "start_line": 84,
-            "end_line": 85,
+            "start_line": 70,
+            "end_line": 71,
             "unit_name": "is_skill_path"
           }
         ]
@@ -1901,22 +1895,22 @@
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 710,
-            "end_line": 711,
+            "start_line": 586,
+            "end_line": 587,
             "unit_name": "level_required_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 719,
-            "end_line": 720,
+            "start_line": 595,
+            "end_line": 596,
             "unit_name": "level_optional_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 728,
-            "end_line": 729,
+            "start_line": 604,
+            "end_line": 605,
             "unit_name": "level_validation_commands"
           }
         ]
