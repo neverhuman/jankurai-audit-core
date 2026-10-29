@@ -1557,6 +1557,11 @@ fn changed_fast_inventory_paths(scope_paths: &[String]) -> Vec<String> {
         "go.sum",
         "agent",
         ".github/workflows",
+        // Forge lanes are declared here and may delegate through scripts/ to
+        // ops/ci/. Keep both unchanged surfaces so scoped audits resolve the
+        // same executable CI evidence as full audits.
+        ".jeryu/ci.toml",
+        "scripts",
         "contracts",
         "db",
         "schemas",
