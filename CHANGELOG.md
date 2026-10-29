@@ -18,8 +18,9 @@ Standard `0.9.0` and schema `1.9.0` remain unchanged.
 
 Pins kernel `bc246e57a7dd784589c250ff7d7237ce7691864e` (runtime auditor
 identity `1.7.6`) from [merged kernel PR #24](https://git.jeryu.ai/repos/jeryu/root/jankurai-tools-kernel/pulls/24).
-The direct dependency and the patch for transitive historical GitHub sources
-resolve to that same forge commit. Analyzers remains at reviewed `1eacd85`;
+The standalone patch for direct and transitive historical GitHub sources
+resolves to that same forge commit. The dependency route stays compatible
+with the hub fusion workspace, which patches it to the accepted member tree. Analyzers remains at reviewed `1eacd85`;
 Cargo applies this kernel patch to its dependency too, keeping one kernel
 identity in the resolved graph. Its analyzer implementation is unchanged.
 

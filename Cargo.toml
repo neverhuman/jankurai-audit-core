@@ -6,7 +6,8 @@ resolver = "2"
 
 # Keep one qualified kernel identity across the selected component graph.
 # Redirect transitive historical GitHub sources to the authoritative forge.
-# The direct dependency below and this patch pin the same reviewed commit.
+# Retain the historical dependency route for hub fusion; standalone Cargo
+# resolves it through this forge patch at the same reviewed commit.
 [patch."https://github.com/neverhuman/jankurai-tools-kernel.git"]
 jankurai-audit-kernel = { git = "https://git.jeryu.ai/git/root/jankurai-tools-kernel.git", rev = "bc246e57a7dd784589c250ff7d7237ce7691864e" }
 
