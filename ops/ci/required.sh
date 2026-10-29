@@ -10,6 +10,9 @@ bash scripts/ci-local-lanes-test.sh
 log "required lane: forge gate contract"
 bash scripts/forge-gate-test.sh
 
+log "required lane: git source bootstrap route"
+bash scripts/git-source-route-test.sh
+
 log "required lane: locked metadata, format, lint, and mapped fast proof"
 cargo metadata --locked --offline --no-deps --format-version 1 >/dev/null
 cargo fmt --all --check
