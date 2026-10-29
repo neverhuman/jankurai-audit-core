@@ -11,6 +11,25 @@ subject that says what changed.
 
 ## [Unreleased]
 
+## [1.7.6] - 2026-10-29
+
+`jankurai --version` reports `1.7.6`; `VERSION` is `1.7.6-split.1`.
+Standard `0.9.0` and schema `1.9.0` remain unchanged.
+
+Generated from the released core pin `ci-02d355db189738bf8a2ef94cd87ce2971d2ea605`:
+
+- docs: propose a single agent/jankurai.toml for repo adoption
+Todo: 20261014-134500-3e9e8c
+
+- Honor init surface flags and route generated files
+Todo: 20261014-134444-01c8bb
+
+- init: keep full-level cell guidance, keep score's check green, refuse unknown --ide
+Todo: 20261014-134444-01c8bb
+
+- fix: retain Jeryu CI evidence in scoped audit inventories
+Todo: 20261029-024627-9a0768
+
 ## [1.7.5] - 2026-10-14
 
 `jankurai --version` reports `1.7.5`; `VERSION` is `1.7.5-split.1`. Standard
