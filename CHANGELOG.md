@@ -26,7 +26,7 @@ identity in the resolved graph. Its analyzer implementation is unchanged.
 
 Changes below were generated from the core pin recorded in the published hub
 [v1.7.5 family.lock](https://github.com/neverhuman/jankurai-audit/blob/v1.7.5/family.lock),
-`ci-02d355db189738bf8a2ef94cd87ce2971d2ea605`, through accepted core `c1aaefa`.
+`ci-02d355db189738bf8a2ef94cd87ce2971d2ea605`, through accepted core `78010ed`.
 That immutable core tag exists on the forge and is the release-notes range base:
 
 
@@ -44,6 +44,12 @@ Todo: 20261029-024627-9a0768
 
 - Retain changed-fast evidence and suppress inherited external diffs
 Todo: 20260930-141629-d06f43
+
+- Generate release notes at release time instead of per-change changelog entries
+Todo: 20261013-124905-2f1ff7
+
+- docs: give release preparers an executable notes command
+Todo: 20261013-124905-2f1ff7
 
 ## [1.7.5] - 2026-10-14
 
