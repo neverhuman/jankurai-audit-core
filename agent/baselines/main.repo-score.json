@@ -1,7 +1,7 @@
 {
-  "report_fingerprint": "sha256:e01109d57f063ffccfbca48421e462543098969d171f5515fa87fdc1b1900c04",
-  "input_fingerprint": "sha256:72f08012e9a4fa316daf031309d7b23b34a3c51b34e5198be0c82d896a27c228",
-  "policy_fingerprint": "sha256:fff1d18e42b90a59c992c1a57a2db3f371f30530786d5df6f6102a00280b2db9",
+  "report_fingerprint": "sha256:a6e43b5b24eb6c643ce1f426869696f20d700bca152966189091a7ecf0e4d9bf",
+  "input_fingerprint": "sha256:798033f8082fe76b8f2b502da33eadf5dae6728919a156849c353ed1ecaa9aa1",
+  "policy_fingerprint": "sha256:4cd32b701051a1c4a49d5f810b943078dcd222753cfed74658339e16bebbb2e2",
   "manifest_fingerprints": {
     "owner_map": "sha256:f5476efa16fd63eb0c52fef0917e654180b88c697c80cd245ec1972778f5e1ca",
     "test_map": "sha256:e23efecaf3993e2af906ef750cc7e43ca190a037e1fee76a98045587db0728d0",
@@ -11,11 +11,11 @@
     "standard_version": "sha256:8f44897a6674d188f3c4d8aa0f6e6deb6736193cfdc90ff6021d369586b8ff50"
   },
   "dirty_worktree": false,
-  "generated_at": "1791996917",
+  "generated_at": "1793249374",
   "schema_url": "schemas/repo-score.schema.json",
   "standard": "jankurai",
   "standard_version": "0.9.0",
-  "auditor_version": "1.7.5",
+  "auditor_version": "1.7.6",
   "schema_version": "1.9.0",
   "paper_edition": "2026.05-ed8",
   "target_stack_id": "rust-ts-vite-react-postgres-bounded-python",
@@ -25,9 +25,9 @@
   "conformance_decision": "pass",
   "conformance_blockers": [],
   "repo": ".",
-  "run_id": "1791996917",
-  "started_at": "1791996917",
-  "elapsed_ms": 7030,
+  "run_id": "1793249374",
+  "started_at": "1793249374",
+  "elapsed_ms": 39528,
   "scope": {
     "mode": "full",
     "paths": []
@@ -54,7 +54,7 @@
     }
   },
   "git": {
-    "head": "52302855241e149ee26b3b6ab049d0f8607c72dc",
+    "head": "c1aaefada648b8af1879c30f6461fa44219eef83",
     "base": null,
     "changed_files": 0,
     "mode": "full",
@@ -73,7 +73,7 @@
     ],
     "mode": "standard",
     "standard_version": "0.9.0",
-    "auditor_version": "1.7.5",
+    "auditor_version": "1.7.6",
     "schema_version": "1.9.0",
     "paper_edition": "2026.05-ed8",
     "target_stack": "rust-ts-vite-react-postgres-bounded-python"
@@ -314,9 +314,12 @@
         "web e2e lane present or no web surface",
         "rendered UX QA lane present or no web surface",
         "DOM geometry UX QA runtime found",
-        "Rust property/integration tests present or no Rust surface"
+        "Rust property/integration tests present or no Rust surface",
+        "proofbind artifact found: surfaces=5 missing=5 high_or_critical_missing=0 verdict=review"
       ],
-      "notes": []
+      "notes": [
+        "proofbind reports 5 unresolved obligation(s)"
+      ]
     },
     {
       "name": "Security and supply-chain posture",
@@ -442,9 +445,11 @@
     "evidence": {
       "accessibility": [
         "agent/baselines/main.repo-score.json",
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "api_mocks": [
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "artifact_backed_proof": [
@@ -456,6 +461,7 @@
       ],
       "design_tokens": [
         "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "geometry_runtime": [
@@ -467,9 +473,11 @@
       ],
       "layout_stability": [
         "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ],
       "playwright_visual": [
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/full/crates/tuiwright/tests/smoke.rs",
         "crates/jankurai/tests/fixtures/tuiwright/gap/crates/tuiwright/tests/smoke.rs"
@@ -479,10 +487,11 @@
         "agent/ux-qa.toml",
         "crates/jankurai/src/audit/mod.rs",
         "crates/jankurai/src/commands/context_pack.rs",
-        "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
+        "crates/jankurai/tests/audit_smoke.rs"
       ],
       "visual_review": [
         "crates/jankurai/src/audit/mod.rs",
+        "crates/jankurai/tests/audit_smoke.rs",
         "crates/jankurai/tests/changed_fast_control_files_smoke.rs"
       ]
     }
@@ -1053,7 +1062,23 @@
       "cost-budget"
     ]
   },
-  "security_evidence": {},
+  "security_evidence": {
+    "artifact": {
+      "path": "target/jankurai/security/evidence.json",
+      "envelope_exit_code": 0,
+      "elapsed_ms": 4393,
+      "wrapper_strict": true,
+      "profile": "ci",
+      "commands_ran": 6,
+      "commands_skipped": 0,
+      "commands_failed": 0,
+      "required_commands_skipped": 0,
+      "required_commands_failed": 0,
+      "blocking_commands": [],
+      "generated_at": "1793249110",
+      "git_head": "0784c619a037360b336c6a2e10bced7aeb932981"
+    }
+  },
   "boundaries": {
     "artifact": {
       "path": "agent/boundaries.toml",
@@ -1071,9 +1096,9 @@
   "copy_code": {
     "schema_version": "1.1.0",
     "generated_by": "jankurai copy-code",
-    "generated_at": "2026-10-14T16:55:10.653854859+00:00",
+    "generated_at": "2026-10-29T04:48:56.043271588+00:00",
     "repo": ".",
-    "auditor_version": "1.7.5",
+    "auditor_version": "1.7.6",
     "status": "review",
     "policy": {
       "active_source_only": true,
@@ -1109,7 +1134,7 @@
       ]
     },
     "summary": {
-      "files_scanned": 499,
+      "files_scanned": 502,
       "files_considered": 128,
       "active_files": 128,
       "exact_file_classes": 0,
@@ -1147,8 +1172,8 @@
           {
             "path": "crates/jankurai/src/audit/mod.rs",
             "language": "rust",
-            "start_line": 2031,
-            "end_line": 2044,
+            "start_line": 2041,
+            "end_line": 2054,
             "unit_name": "compare_manifest_fingerprint"
           },
           {
@@ -1612,15 +1637,15 @@
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 372,
-            "end_line": 375,
+            "start_line": 375,
+            "end_line": 378,
             "unit_name": "filter_profile_manifest"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 487,
-            "end_line": 490,
+            "start_line": 490,
+            "end_line": 493,
             "unit_name": "ensure_consumer_paths"
           }
         ]
@@ -1740,8 +1765,8 @@
           {
             "path": "crates/jankurai/src/init/adapters.rs",
             "language": "rust",
-            "start_line": 70,
-            "end_line": 71,
+            "start_line": 84,
+            "end_line": 85,
             "unit_name": "is_skill_path"
           }
         ]
@@ -1895,22 +1920,22 @@
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 586,
-            "end_line": 587,
+            "start_line": 710,
+            "end_line": 711,
             "unit_name": "level_required_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 595,
-            "end_line": 596,
+            "start_line": 719,
+            "end_line": 720,
             "unit_name": "level_optional_lanes"
           },
           {
             "path": "crates/jankurai/src/init/plan.rs",
             "language": "rust",
-            "start_line": 604,
-            "end_line": 605,
+            "start_line": 728,
+            "end_line": 729,
             "unit_name": "level_validation_commands"
           }
         ]
@@ -2685,7 +2710,7 @@
   "coverage_evidence": {
     "artifact": "target/jankurai/coverage/coverage-audit.json",
     "status": "missing",
-    "sources_total": 0,
+    "sources_total": 2,
     "sources_present": 0,
     "hard_findings": 0,
     "soft_findings": 0
